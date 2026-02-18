@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-content padding-y">
+    {% include "includes/alerts.html" %}
+
+    <div class="container">
+        <div class="row">
+            <!-- Modern Sidebar -->
+            <div class="col-lg-3 col-md-4">
+                {% include "includes/dashboard_sidebar.html" %}
+            </div>
+
+            <!-- Main Content -->
+            <main class="col-lg-9 col-md-8">
+                <!-- Page Header -->
+                <div class="page-header mb-4">
+                    <div class="page-title">
+                        <h1>My Orders</h1>
+                        <p>Track and manage all your orders in one place</p>
+                    </div>
+                    <div class="page-stats">
+                        <div class="stat-item">
+                            <span class="stat-number">{{ orders|length }}</span>
+                            <span class="stat-label">Total Orders</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders List -->
+                {% if orders %}
+                    <div class="orders-container">
+                        {% for order in orders %}
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div class="order-info">
+                                    <h3 class="order-number">
+                                        <i class="fas fa-receipt"></i>
+                                        Order #{{ order.order_number }}
+                                    </h3>
+                                    <p class="order-date">
+                                        <i class="far fa-calendar"></i>
+                                        {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|date:"g:i A" }}
+                                    </p>
+                                </div>
+                                
+                                <div class="order-status">
+                                    {% if order.status == "Verifying Payment" %}
+                                        <span class="status-badge warning">
+                                            <i class="fas fa-clock"></i>
+                                            Verifying Payment
+                                        </span>
+                                    {% elif order.status == "Shipping" %}
+                                        <span class="status-badge info">
+                                            <i class="fas fa-truck"></i>
+                                            Shipping
+                                        </span>
+                                    {% elif order.status == "Shipped" %}
+                                        <span class="status-badge success">
+                                            <i class="fas fa-check-circle"></i>
+                                            Shipped
+                                        </span>
+                                    {% elif order.status == "Delivered" %}
+                                        <span class="status-badge success">
+                                            <i class="fas fa-check-double"></i>
+                                            Delivered
+                                        </span>
+                                    {% elif order.status == "Cancelled" %}
+                                        <span class="status-badge danger">
+                                            <i class="fas fa-times-circle"></i>
+                                            Cancelled
+                                        </span>
+                                    {% else %}
+                                        <span class="status-badge secondary">
+                                            <i class="fas fa-info-circle"></i>
+                                            {{ order.status }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="order-body">
+                                <div class="order-details">
+                                    <div class="detail-item">
+                                        <span class="label">Billing Name:</span>
+                                        <span class="value">{{ order.full_name }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Phone:</span>
+                                        <span class="value">{{ order.phone }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Email:</span>
+                                        <span class="value">{{ order.email }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Address:</span>
+                                        <span class="value">{{ order.full_address }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="order-summary">
+                                    <div class="summary-row">
+                                        <span class="label">Order Total:</span>
+                                        <span class="value total">৳ {{ order.order_total }}</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span class="label">Tax/Delivery:</span>
+                                        <span class="value">৳ {{ order.tax }}</span>
+                                    </div>
+                                    {% if order.payment %}
+                                    <div class="summary-row">
+                                        <span class="label">Payment Method:</span>
+                                        <span class="value">{{ order.payment.payment_method }}</span>
+                                    </div>
+                                    <div class="summary-row">
+                                        <span class="label">Transaction ID:</span>
+                                        <span class="value">{{ order.payment.payment_id }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="order-footer">
+                                <a href="{% url 'order_detail' order.order_number %}" class="btn btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                    View Details
+                                </a>
+                                
+                                {% if order.status == "Delivered" %}
+                                    <button class="btn btn-success" onclick="showReorderModal('{{ order.order_number }}')">
+                                        <i class="fas fa-redo"></i>
+                                        Reorder
+                                    </button>
+                                {% endif %}
+                                
+                                {% if order.status == "Verifying Payment" %}
+                                    <button class="btn btn-warning" onclick="showCancelModal('{{ order.order_number }}')">
+                                        <i class="fas fa-times"></i>
+                                        Cancel Order
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h2>No Orders Yet</h2>
+                        <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
+                        <a href="{% url 'store' %}" class="btn btn-primary">
+                            <i class="fas fa-store"></i>
+                            Start Shopping
+                        </a>
+                    </div>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Page Styles */
+.section-content {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+/* Page Header */
+.page-header {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.page-title h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+    margin-bottom: 0.5rem;
+}
+
+.page-title p {
+    color: #718096;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.page-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #4299e1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Orders Container */
+.orders-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.order-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.order-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.order-number {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.order-date {
+    color: #718096;
+    font-size: 0.9rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-badge.warning { 
+    background: linear-gradient(135deg, #fef5e7, #fdeaa7); 
+    color: #f39c12; 
+    border: 1px solid #f9e79f;
+}
+.status-badge.info { 
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb); 
+    color: #2196f3; 
+    border: 1px solid #90caf9;
+}
+.status-badge.success { 
+    background: linear-gradient(135deg, #e8f5e8, #c8e6c9); 
+    color: #4caf50; 
+    border: 1px solid #a5d6a7;
+}
+.status-badge.danger { 
+    background: linear-gradient(135deg, #ffebee, #ffcdd2); 
+    color: #f44336; 
+    border: 1px solid #ef9a9a;
+}
+.status-badge.secondary { 
+    background: linear-gradient(135deg, #f5f5f5, #e0e0e0); 
+    color: #757575; 
+    border: 1px solid #bdbdbd;
+}
+
+.order-body {
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.order-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item .label {
+    font-weight: 500;
+    color: #4a5568;
+    min-width: 120px;
+}
+
+.detail-item .value {
+    color: #2d3748;
+    font-weight: 400;
+    text-align: right;
+}
+
+.order-summary {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.summary-row:last-child {
+    margin-bottom: 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.summary-row .label {
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.summary-row .value {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.summary-row .value.total {
+    color: #4299e1;
+    font-size: 1.1rem;
+}
+
+.order-footer {
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #3182ce, #2c5282);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #38a169, #2f855a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ed8936, #dd6b20);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #dd6b20, #c05621);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
+}
+
+/* Empty State */
+.empty-state {
+    background: white;
+    border-radius: 16px;
+    padding: 4rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #cbd5e0;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h2 {
+    font-size: 1.5rem;
+    color: #2d3748;
+    margin: 0;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: #718096;
+    font-size: 1.1rem;
+    margin: 0;
+    margin-bottom: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .order-body {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .detail-item .value {
+        text-align: left;
+    }
+    
+    .order-footer {
+        justify-content: center;
+    }
+    
+    .btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+    }
+}
+</style>
+
+<script>
+// Placeholder functions for future functionality
+function showReorderModal(orderNumber) {
+    // Future implementation: Show reorder modal
+    console.log('Reorder functionality for order:', orderNumber);
+    alert('Reorder functionality coming soon!');
+}
+
+function showCancelModal(orderNumber) {
+    // Future implementation: Show cancel confirmation modal
+    if (confirm('Are you sure you want to cancel this order?')) {
+        console.log('Cancel order:', orderNumber);
+        // Future: Implement cancel order API call
+        alert('Cancel functionality coming soon!');
+    }
+}
+
+// Add loading animation for cards
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.order-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+</script>
+
+<!-- ========================= SECTION CONTENT END// ========================= -->
+
+{% endblock content %}

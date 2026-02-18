@@ -1,0 +1,180 @@
+/* =========================
+   PRODUCTION-READY STAR RATING
+   Full-star only (1-5 integer ratings)
+   Cumulative highlighting with active states
+   ========================= */
+
+/* Hide radio buttons */
+.rate input {
+    display: none;
+}
+
+/* Container - reversed for visual left-to-right order */
+.rate {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 2px;
+    user-select: none;
+    align-items: center;
+}
+
+/* Star label with generous hit area */
+.rate label {
+    cursor: pointer;
+    position: relative;
+    font-size: 2rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+    
+    /* Default empty star state */
+    color: #d9d9d9;
+    
+    /* Smooth transitions */
+    transition: all 0.1s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* Half-star labels - slightly smaller and offset */
+.rate label.half-star {
+    width: 35px;
+    height: 35px;
+    font-size: 1.8rem;
+    opacity: 0.85;
+}
+
+/* Star icon */
+.rate label::before {
+    content: "\f005";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    display: block;
+}
+
+/* ========================================
+   HOVER STATE - Temporary preview
+   JavaScript adds .hover class
+   ======================================== */
+
+/* Hovered star gets filled gold */
+.rate label.hover {
+    color: #ffb703;
+    transform: scale(1.15);
+}
+
+/* All hovered siblings also fill (due to flex-reverse) */
+.rate label.hover ~ label {
+    color: #ffb703;
+}
+
+/* ========================================
+   ACTIVE STATE - Permanent selection
+   JavaScript adds .active class
+   ======================================== */
+
+/* Selected/active star is gold */
+.rate label.active {
+    color: #ffb703;
+}
+
+/* All active siblings stay gold (cumulative) */
+.rate label.active ~ label.active {
+    color: #ffb703;
+}
+
+/* ========================================
+   INTERACTION FEEDBACK
+   ======================================== */
+
+/* Subtle shadow on click */
+.rate label:active {
+    filter: drop-shadow(0 0 3px rgba(255, 183, 3, 0.5));
+}
+
+/* Prevent text selection */
+.rate {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* ========================================
+   WRAPPER & LABEL TEXT
+   ======================================== */
+
+.rate-wrap {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 10px 0;
+    border: 1px solid #e9ecef;
+}
+
+.rate-wrap label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    cursor: default;
+}
+
+.rate-text {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 10px;
+    display: block;
+}
+
+.rating-star i{
+    color:#ffb703 !important;
+}
+
+
+ul.thumb{
+  margin:0 auto;
+  padding: 0;
+  float: left;
+}
+ul.thumb li{
+  list-style: none;
+  margin: 10px;
+}
+ul.thumb li img{
+  width: 80px;
+  height: 80px;
+  border: 1px solid grey;
+}
+
+/* ========================================
+   PROFILE PICTURE CENTERING
+   Ensures profile picture is centered in card
+   ======================================== */
+
+.card.text-center .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.card.text-center .card-body > div {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card.text-center .card-body img {
+  display: block;
+  margin: 0 auto !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}

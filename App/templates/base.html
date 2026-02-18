@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="cache-control" content="max-age=604800" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Facots Ecom | One of the Greatest Online Shopping Platform for Gen-Z</title>
+
+  <link rel="shortcut icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
+  <!-- Font Awesome -->
+  <link href="{% static 'fonts/fontawesome/css/all.min.css' %}" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <!-- jQuery (required for existing logic) -->
+  <script src="{% static 'js/jquery-2.0.0.min.js' %}"></script>
+
+  <!-- Bootstrap (kept for safety) -->
+  <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet">
+  <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+  <!-- Base UI Reset + Global Styling -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1;
+      width: 100%;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+    }
+  </style>
+
+  <!-- Optional project JS (kept untouched) -->
+  <script src="{% static 'js/script.js' %}"></script>
+
+  <script>
+    // jQuery ready (safe placeholder)
+    $(document).ready(function () {
+      // Existing pages can safely hook here
+    });
+  </script>
+</head>
+
+<body>
+
+  {% include 'includes/navbar.html' %}
+
+  <main>
+    {% block content %}
+    {% comment %} Page specific content {% endcomment %}
+    {% endblock %}
+  </main>
+
+  {% include 'includes/footer.html' %}
+
+</body>
+</html>
+
+
+
+
+{% comment %} ----------------------------------------------------------------------------------- {% endcomment %}
+

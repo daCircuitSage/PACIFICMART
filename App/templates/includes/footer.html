@@ -1,0 +1,106 @@
+<!-- ========================= FOOTER ========================= -->
+<footer class="modern-footer">
+  <style>
+    .modern-footer {
+      background: #0f172a;
+      color: #cbd5f5;
+      margin-top: 60px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .modern-footer .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 30px 16px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footer-brand {
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .footer-contact span {
+      display: block;
+      font-size: 14px;
+      margin: 6px 0;
+    }
+
+    .footer-contact i {
+      margin-right: 6px;
+      color: #60a5fa;
+    }
+
+    .footer-payments i {
+      font-size: 28px;
+      margin: 0 8px;
+      color: #e5e7eb;
+    }
+
+    .footer-bottom {
+      border-top: 1px solid #1e293b;
+      margin-top: 20px;
+      padding-top: 15px;
+      font-size: 13px;
+      text-align: center;
+      color: #94a3b8;
+    }
+
+    @media (max-width: 576px) {
+      .footer-payments i {
+        font-size: 24px;
+        margin: 0 6px;
+      }
+    }
+  </style>
+
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        &copy; 2019 Company Name  
+        <br>
+        All rights reserved.
+      </div>
+
+      <div class="footer-contact">
+        <span><i class="fa fa-envelope"></i> info@pixsellz.io</span>
+        <span><i class="fa fa-phone"></i> +879-332-9375</span>
+        <span><i class="fa fa-map-marker-alt"></i> Street name 123, Avenue ABC</span>
+      </div>
+
+      <div class="footer-payments">
+        <i class="fab fa-cc-visa"></i>
+        <i class="fab fa-cc-paypal"></i>
+        <i class="fab fa-cc-mastercard"></i>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      Secure payments • Fast delivery • Trusted service
+    </div>
+  </div>
+</footer>
+<!-- ========================= FOOTER END ========================= -->
+
+<!-- Existing JS (unchanged functionality) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+  $(document).ready(function(){
+    $('.thumb a').click(function(e){
+      e.preventDefault();
+      $('.mainImage img').attr('src', $(this).attr("href"));
+    })
+  })
+</script>
+
+</body>
+</html>

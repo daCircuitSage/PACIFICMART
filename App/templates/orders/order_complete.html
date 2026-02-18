@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container my-5 text-center">
+    <i class="fas fa-check-circle" style="font-size: 72px; color: #28A745;"></i>
+    <h2 class="mt-3">Payment Successful</h2>
+    <h4>Go to Dashboard to check order details</h4>
+    <div class="mt-4">
+        <a href="{% url 'store' %}" class="btn btn-success">Shop more</a>
+    </div>
+</div>
+
+<div class="container my-5 p-5 bg-light" style="max-width: 900px;">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="invoice-logo mb-3">
+                <img src="{% static 'images/logo.png' %}" alt="Logo" style="max-height: 40px;">
+            </div>
+        </div>
+        <div class="col-lg-6 text-lg-end">
+            <ul class="list-unstyled mb-0">
+                <li><strong>Invoiced To:</strong></li>
+                <li>{{ order.full_name }}</li>
+                <li>{{ order.full_address }}</li>
+                <li>{{ order.city }}, {{ order.state }}</li>
+                <li>{{ order.country }}</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <ul class="list-unstyled">
+            <li><strong>Order #:</strong> {{ order.order_number }}</li>
+            <li><strong>Transaction ID:</strong> {{ order.payment.payment_id }}</li>
+            <li><strong>Order Date:</strong> {{ order.created_at }}</li>
+            <li><strong>Status:</strong> {{ order.payment.status }}</li>
+        </ul>
+    </div>
+
+    <div class="table-responsive mt-4">
+        <table class="table table-bordered text-center">
+            <thead>
+                <tr>
+                    <th>Products</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in ordered_products %}
+                <tr>
+                    <td>
+                        {{ item.product.product_name }}
+                        {% if item.variations.all %}
+                        <p class="text-muted small">
+                            {% for i in item.variations.all %}
+                                {{ i.variation_category|capfirst }} : {{ i.variation_value|capfirst }}<br>
+                            {% endfor %}
+                        </p>
+                        {% endif %}
+                    </td>
+                    <td>{{ item.quantity }}</td>
+                    <td>৳ {{ item.product_price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="2" class="text-end">Sub Total:</th>
+                    <th>৳ {{ subtotal }}</th>
+                </tr>
+                <tr>
+                    <th colspan="2" class="text-end">Delivery Charge:</th>
+                    <th>৳ {{ order.tax }}</th>
+                </tr>
+                <tr>
+                    <th colspan="2" class="text-end">Grand Total:</th>
+                    <th>৳ {{ order.order_total }}</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <p class="text-center mt-4">Thank you for shopping with us!</p>
+</div>
+
+{% endblock %}

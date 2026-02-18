@@ -1,0 +1,846 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  /* ===== AMAZON-STYLE CSS ===== */
+  .pd-wrapper {
+    padding: 20px 10px;
+    background: #ffffff;
+    min-height: 100vh;
+  }
+
+  .pd-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .pd-container {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+  }
+
+  /* ===== IMAGE GALLERY ===== */
+  .pd-image-section {
+    position: sticky;
+    top: 20px;
+  }
+
+  .pd-main-img {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .pd-main-img img {
+    max-height: 500px;
+    width: 100%;
+    object-fit: contain;
+  }
+
+  .pd-thumbs {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+
+  .pd-thumbs a {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pd-thumbs a:hover {
+    border-color: #0077be;
+  }
+
+  .pd-thumbs a.active {
+    border-color: #0077be;
+    border-width: 2px;
+  }
+
+  .pd-thumbs img {
+    width: 100%;
+    height: 60px;
+    object-fit: cover;
+  }
+
+  /* ===== PRODUCT INFO ===== */
+  .pd-info-section {
+    padding: 0 20px;
+  }
+
+  .pd-title {
+    font-size: 24px;
+    font-weight: 400;
+    color: #0f1111;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .pd-brand {
+    font-size: 12px;
+    color: #565959;
+    margin-bottom: 12px;
+  }
+
+  .pd-brand a {
+    color: #007185;
+    text-decoration: none;
+  }
+
+  .pd-brand a:hover {
+    color: #0077be;
+    text-decoration: underline;
+  }
+
+  .pd-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .rating-stars {
+    color: #f0c14b;
+    font-size: 16px;
+  }
+
+  .rating-count {
+    color: #007185;
+    font-size: 14px;
+    text-decoration: none;
+  }
+
+  .rating-count:hover {
+    color: #0077be;
+    text-decoration: underline;
+  }
+
+  .pd-price-section {
+    margin: 20px 0;
+    padding: 16px 0;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .pd-price {
+    font-size: 28px;
+    color: #0f1111;
+    font-weight: 400;
+  }
+
+  .pd-original-price {
+    text-decoration: line-through;
+    color: #565959;
+    font-size: 16px;
+    margin-left: 8px;
+  }
+
+  .pd-discount {
+    color: #b12704;
+    font-size: 16px;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+
+  .pd-desc {
+    color: #0f1111;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+
+  /* ===== VARIATIONS ===== */
+  .pd-variation {
+    margin-bottom: 20px;
+  }
+
+  .pd-variation-label {
+    font-size: 18px;
+    color: #0f1111;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .pd-variation-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .color-option {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .color-option:hover {
+    border-color: #0077be;
+  }
+
+  .color-option.selected {
+    border-color: #0077be;
+    border-width: 2px;
+    box-shadow: 0 0 0 2px rgba(0, 119, 190, 0.2);
+  }
+
+  .size-option {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .size-option:hover {
+    border-color: #0077be;
+  }
+
+  .size-option.selected {
+    border-color: #0077be;
+    background: #e6f3f7;
+  }
+
+  /* ===== STOCK STATUS ===== */
+  .pd-stock {
+    margin-bottom: 20px;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .stock-in {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .stock-out {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .stock-low {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+  }
+
+  /* ===== ADD TO CART SECTION ===== */
+  .pd-cart-section {
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+    margin-top: 20px;
+  }
+
+  .pd-quantity {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .pd-quantity-label {
+    font-size: 14px;
+    color: #0f1111;
+    font-weight: 700;
+  }
+
+  .quantity-selector {
+    display: flex;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .quantity-btn {
+    background: #e6f3f7;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #0f1111;
+  }
+
+  .quantity-btn:hover {
+    background: #cce7f0;
+  }
+
+  .quantity-input {
+    border: none;
+    text-align: center;
+    width: 60px;
+    padding: 8px;
+    font-size: 16px;
+  }
+
+  .pd-actions {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .pd-btn {
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-align: center;
+  }
+
+  .pd-btn-primary {
+    background: linear-gradient(135deg, #006994, #004e7c) !important;
+    color: white !important;
+    border: 1px solid #004e7c !important;
+  }
+
+  .pd-btn-primary:hover {
+    background: linear-gradient(135deg, #00a8cc, #006994) !important;
+    border-color: #006994 !important;
+    color: white !important;
+  }
+
+  .pd-btn-secondary {
+    background: white;
+    color: #0f1111;
+    border: 1px solid #d5d9d9;
+  }
+
+  .pd-btn-secondary:hover {
+    background: #e6f3f7 !important;
+    border-color: #0077be !important;
+    color: #0077be !important;
+  }
+
+  .pd-btn:disabled {
+    background: #e7e4e1;
+    color: #a2a6a8;
+    border-color: #d5d9d9;
+    cursor: not-allowed;
+  }
+
+  /* ===== REVIEWS ===== */
+  .pd-reviews {
+    margin-top: 40px;
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+  }
+
+  .pd-reviews-header {
+    font-size: 21px;
+    font-weight: 700;
+    color: #0f1111;
+    margin-bottom: 20px;
+  }
+
+  .review-form {
+    background: #f7f3f0;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+
+  .review-form h4 {
+    font-size: 18px;
+    color: #0f1111;
+    margin-bottom: 16px;
+  }
+
+  .rate {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+  }
+
+  .rate input {
+    display: none;
+  }
+
+  .rate label {
+    font-size: 20px;
+    color: #ddd;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .rate label:before {
+    content: "★";
+  }
+
+  .rate input:checked ~ label,
+  .rate label:hover,
+  .rate label:hover ~ label {
+    color: #f0c14b;
+  }
+
+  .review-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .review-input:focus {
+    outline: none;
+    border-color: #0077be;
+    box-shadow: 0 0 0 2px rgba(0, 119, 190, 0.2);
+  }
+
+  .review-textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .review-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  .review-user {
+    font-weight: 700;
+    color: #0f1111;
+  }
+
+  .review-date {
+    font-size: 12px;
+    color: #565959;
+  }
+
+  .review-rating {
+    color: #f0c14b;
+    margin-bottom: 8px;
+  }
+
+  .review-subject {
+    font-weight: 700;
+    color: #0f1111;
+    margin-bottom: 8px;
+  }
+
+  .review-text {
+    color: #0f1111;
+    line-height: 1.5;
+    font-size: 14px;
+  }
+
+  /* ===== HIDDEN SELECTS FOR FORM SUBMISSION ===== */
+  .pd-select {
+    display: none;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .pd-wrapper {
+      padding: 10px 5px;
+    }
+
+    .pd-info-section {
+      padding: 0 10px;
+    }
+
+    .pd-title {
+      font-size: 20px;
+    }
+
+    .pd-price {
+      font-size: 24px;
+    }
+
+    .pd-thumbs {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .pd-actions {
+      flex-direction: column;
+    }
+
+    .pd-image-section {
+      position: static;
+    }
+  }
+</style>
+
+<section class="pd-wrapper">
+  <div class="container">
+    {% include "includes/alerts.html" %}
+
+    <div class="pd-container">
+
+      <!-- IMAGE SECTION -->
+      <div class="pd-image-section">
+        <div class="pd-main-img mainImage">
+          <img src="{{ single_product.product_img.url }}" alt="{{ single_product.product_name }}">
+        </div>
+
+        <div class="pd-thumbs thumb">
+          <a href="{{ single_product.product_img.url }}" class="active" onclick="changeMainImage('{{ single_product.product_img.url }}', this); return false;">
+            <img src="{{ single_product.product_img.url }}">
+          </a>
+          {% for i in product_gallery %}
+          <a href="{{ i.images.url }}" onclick="changeMainImage('{{ i.images.url }}', this); return false;">
+            <img src="{{ i.images.url }}">
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- PRODUCT INFO SECTION -->
+      <div class="pd-info-section">
+        <form action="{% url 'add_to_cart' single_product.id %}" method="POST" id="addToCartForm">
+          {% csrf_token %}
+
+          <!-- BRAND (if applicable) -->
+          <div class="pd-brand">
+            <a href="#">Visit the Store</a>
+          </div>
+
+          <!-- PRODUCT TITLE -->
+          <h1 class="pd-title">{{ single_product.product_name }}</h1>
+
+          <!-- RATING -->
+          <div class="pd-rating">
+            <div class="rating-stars">
+              {% for i in "12345" %}
+                <i class="fa fa-star{% if single_product.averageReview < forloop.counter0 %}-o{% elif single_product.averageReview < forloop.counter %}-half-o{% endif %}"></i>
+              {% endfor %}
+            </div>
+            <a href="#reviews" class="rating-count">({{ single_product.countReviews }})</a>
+          </div>
+
+          <!-- PRICE SECTION -->
+          <div class="pd-price-section">
+            <div class="pd-price">${{ single_product.product_price }}</div>
+            {% if single_product.original_price %}
+              <div class="pd-original-price">${{ single_product.original_price }}</div>
+              <div class="pd-discount">Save {{ single_product.discount_percentage }}%</div>
+            {% endif %}
+          </div>
+
+          <!-- DESCRIPTION -->
+          <div class="pd-desc">{{ single_product.product_description }}</div>
+
+          <!-- VARIATIONS -->
+          {% if single_product.variation.colors %}
+            <div class="pd-variation">
+              <div class="pd-variation-label">Color</div>
+              <div class="pd-variation-options">
+                {% for color in single_product.variation.colors %}
+                  <div class="color-option" 
+                       style="background-color: {{ color.variation_value }};"
+                       data-color="{{ color.variation_value|lower }}"
+                       onclick="selectColor(this)"
+                       title="{{ color.variation_value|capfirst }}">
+                  </div>
+                {% endfor %}
+              </div>
+              <input type="hidden" name="color" id="selectedColor" required>
+            </div>
+          {% endif %}
+
+          {% if single_product.variation.sizes %}
+            <div class="pd-variation">
+              <div class="pd-variation-label">Size</div>
+              <div class="pd-variation-options">
+                {% for size in single_product.variation.sizes %}
+                  <div class="size-option" 
+                       data-size="{{ size.variation_value|lower }}"
+                       onclick="selectSize(this)">
+                    {{ size.variation_value|capfirst }}
+                  </div>
+                {% endfor %}
+              </div>
+              <input type="hidden" name="size" id="selectedSize" required>
+            </div>
+          {% endif %}
+
+          <!-- FALLBACK SELECTS (for form submission) -->
+          {% if single_product.variation.colors %}
+            <div class="pd-select">
+              <select name="color" id="fallbackColor" required>
+                <option value="" disabled selected>Choose Color</option>
+                {% for i in single_product.variation.colors %}
+                <option value="{{ i.variation_value|lower }}">{{ i.variation_value|capfirst }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+          {% if single_product.variation.sizes %}
+            <div class="pd-select">
+              <select name="size" id="fallbackSize" required>
+                <option value="" disabled selected>Choose Size</option>
+                {% for i in single_product.variation.sizes %}
+                <option value="{{ i.variation_value|lower }}">{{ i.variation_value|capfirst }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
+
+          <!-- STOCK STATUS -->
+          {% if single_product.stock <= 0 %}
+            <div class="pd-stock stock-out">
+              Out of Stock
+            </div>
+          {% elif single_product.stock <= 5 %}
+            <div class="pd-stock stock-low">
+              Only {{ single_product.stock }} left in stock
+            </div>
+          {% else %}
+            <div class="pd-stock stock-in">
+              In Stock
+            </div>
+          {% endif %}
+
+          <!-- CART SECTION -->
+          <div class="pd-cart-section">
+            <!-- QUANTITY SELECTOR -->
+            <div class="pd-quantity">
+              <div class="pd-quantity-label">Quantity</div>
+              <div class="quantity-selector">
+                <button type="button" class="quantity-btn" onclick="decreaseQuantity()">-</button>
+                <input type="number" class="quantity-input" id="quantity" name="quantity" value="1" min="1" max="{{ single_product.stock }}">
+                <button type="button" class="quantity-btn" onclick="increaseQuantity()">+</button>
+              </div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="pd-actions">
+              {% if single_product.stock <= 0 %}
+                <button type="button" class="pd-btn pd-btn-primary" disabled>
+                  Out of Stock
+                </button>
+              {% else %}
+                <button type="submit" class="pd-btn pd-btn-primary" id="addToCartBtn">
+                  Add to Cart
+                </button>
+              {% endif %}
+              
+              <button type="button" class="pd-btn pd-btn-secondary" onclick="addToWishlist()">
+                ♥ Wishlist
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+    </div>
+
+    <!-- REVIEWS SECTION -->
+    <div class="pd-reviews" id="reviews">
+      <h2 class="pd-reviews-header">Customer Reviews</h2>
+
+      <!-- REVIEW FORM -->
+      <div class="review-form">
+        <form action="{% url 'submit_review' single_product.id %}" method="POST">
+          {% csrf_token %}
+
+          <h4>Write a customer review</h4>
+
+          <div class="rate">
+            <input type="radio" id="r5" name="rating" value="5" required><label for="r5"></label>
+            <input type="radio" id="r4" name="rating" value="4"><label for="r4"></label>
+            <input type="radio" id="r3" name="rating" value="3"><label for="r3"></label>
+            <input type="radio" id="r2" name="rating" value="2"><label for="r2"></label>
+            <input type="radio" id="r1" name="rating" value="1"><label for="r1"></label>
+          </div>
+
+          <input type="text" name="subject" class="review-input" placeholder="Review title" required>
+          <textarea name="review" class="review-input review-textarea" placeholder="Your review" required></textarea>
+
+          {% if user.is_authenticated %}
+            {% if orderproduct %}
+              <button type="submit" class="pd-btn pd-btn-primary">Submit Review</button>
+            {% else %}
+              <p style="color: #565959; font-size: 14px;">
+                You must purchase this product to post a review
+              </p>
+            {% endif %}
+          {% else %}
+            <p style="color: #565959; font-size: 14px;">
+              You must be logged in to post a review.
+              <a href="{% url 'login' %}" style="color: #007185;">Login now</a>
+            </p>
+          {% endif %}
+        </form>
+      </div>
+
+      <!-- CUSTOMER REVIEWS -->
+      {% for review in reviews %}
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <div class="review-user">{{ review.user.full_name }}</div>
+            <div class="review-date">{{ review.updated_at|date:"M d, Y" }}</div>
+          </div>
+          <div class="review-rating">
+            {% for i in "12345" %}
+              <i class="fa fa-star{% if review.rating < forloop.counter %}-o{% endif %}"></i>
+            {% endfor %}
+          </div>
+        </div>
+
+        <h6 class="review-subject">{{ review.subject }}</h6>
+        <p class="review-text">{{ review.review }}</p>
+      </div>
+      {% endfor %}
+
+      {% if not reviews %}
+        <div style="text-align: center; padding: 40px; color: #565959;">
+          <p>There are no customer reviews yet.</p>
+        </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</section>
+
+<script>
+  // Image Gallery
+  function changeMainImage(imageSrc, thumbnail) {
+    const mainImage = document.querySelector('.mainImage img');
+    mainImage.src = imageSrc;
+    
+    // Update active thumbnail
+    document.querySelectorAll('.pd-thumbs a').forEach(thumb => {
+      thumb.classList.remove('active');
+    });
+    thumbnail.classList.add('active');
+  }
+
+  // Color Selection
+  function selectColor(element) {
+    document.querySelectorAll('.color-option').forEach(opt => {
+      opt.classList.remove('selected');
+    });
+    element.classList.add('selected');
+    document.getElementById('selectedColor').value = element.dataset.color;
+    document.getElementById('fallbackColor').value = element.dataset.color;
+  }
+
+  // Size Selection
+  function selectSize(element) {
+    document.querySelectorAll('.size-option').forEach(opt => {
+      opt.classList.remove('selected');
+    });
+    element.classList.add('selected');
+    document.getElementById('selectedSize').value = element.dataset.size;
+    document.getElementById('fallbackSize').value = element.dataset.size;
+  }
+
+  // Quantity Controls
+  function decreaseQuantity() {
+    const input = document.getElementById('quantity');
+    const currentValue = parseInt(input.value);
+    if (currentValue > 1) {
+      input.value = currentValue - 1;
+    }
+  }
+
+  function increaseQuantity() {
+    const input = document.getElementById('quantity');
+    const currentValue = parseInt(input.value);
+    const maxStock = parseInt(input.max);
+    if (currentValue < maxStock) {
+      input.value = currentValue + 1;
+    }
+  }
+
+  // Add to Cart Form Validation
+  document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+    // Check if color variations exist and if so, if one is selected
+    const colorExists = {% if single_product.variation.colors %}true{% else %}false{% endif %};
+    const sizeExists = {% if single_product.variation.sizes %}true{% else %}false{% endif %};
+    
+    if (colorExists) {
+      const selectedColor = document.getElementById('selectedColor').value;
+      if (!selectedColor) {
+        alert('Please select a color');
+        e.preventDefault();
+        return false;
+      }
+    }
+    
+    if (sizeExists) {
+      const selectedSize = document.getElementById('selectedSize').value;
+      if (!selectedSize) {
+        alert('Please select a size');
+        e.preventDefault();
+        return false;
+      }
+    }
+    
+    // Allow form to submit naturally - no JavaScript interference
+    // Show loading state (optional, will reset on page reload)
+    const btn = document.getElementById('addToCartBtn');
+    if (btn) {
+      btn.textContent = 'Adding...';
+      btn.disabled = true;
+    }
+    
+    // Form will submit naturally to the server
+    return true;
+  });
+
+  // Wishlist Function
+  function addToWishlist() {
+    const btn = event.target;
+    const isActive = btn.classList.contains('active');
+    
+    if (isActive) {
+      btn.classList.remove('active');
+      btn.textContent = '♥ Wishlist';
+    } else {
+      btn.classList.add('active');
+      btn.textContent = '♥ Added';
+    }
+  }
+
+  // Smooth scroll to reviews
+  document.querySelectorAll('a[href="#reviews"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      document.querySelector('#reviews').scrollIntoView({
+        behavior: 'smooth'
+      });
+    });
+  });
+</script>
+
+{% endblock %}

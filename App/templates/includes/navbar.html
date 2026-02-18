@@ -1,0 +1,1028 @@
+{% load static %}
+
+<header class="modern-navbar">
+  <style>
+    /* ===== MODERN NAVBAR VARIABLES ===== */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0077be 0%, #004e7c 100%);
+      --secondary-gradient: linear-gradient(135deg, #00a8cc 0%, #0077be 100%);
+      --ocean-gradient: linear-gradient(135deg, #006994 0%, #004e7c 100%);
+      --light-ocean-gradient: linear-gradient(135deg, #00a8cc 0%, #006994 100%);
+      --dark: #1a202c;
+      --light: #f8fafc;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ===== BASE STYLES ===== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: var(--transition);
+    }
+
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      background: var(--dark);
+      color: #cbd5e0;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .top-bar .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .top-left {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .top-left span {
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+
+    .top-left span:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .top-right {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .top-right a {
+      color: #cbd5e0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: var(--transition);
+    }
+
+    .top-right a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transform: translateY(-1px);
+    }
+
+    /* ===== MAIN NAVIGATION ===== */
+    .main-nav {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .main-nav .container {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 30px;
+      padding: 16px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* ===== LOGO ===== */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--dark);
+      text-decoration: none;
+    }
+
+    .logo img {
+      height: 45px;
+      width: auto;
+      object-fit: contain;
+      transition: var(--transition);
+    }
+
+    .logo:hover img {
+      transform: scale(1.05);
+    }
+
+    /* ===== SEARCH BAR ===== */
+    .search {
+      position: relative;
+      max-width: 600px;
+    }
+
+    .search form {
+      width: 100%;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: var(--light);
+      border: 1px solid #d5d9d9;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    .search-box:focus-within {
+      border-color: #0077be;
+      box-shadow: 0 0 0 4px rgba(0, 119, 190, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 14px 20px;
+      border: none;
+      outline: none;
+      font-size: 15px;
+      background: transparent;
+      color: var(--dark);
+      transition: var(--transition);
+    }
+
+    .search-box input::placeholder {
+      color: #a0aec0;
+      transition: var(--transition);
+    }
+
+    .search-box input:focus::placeholder {
+      color: #cbd5e0;
+      transform: translateX(2px);
+    }
+
+    .search-box button {
+      background: var(--ocean-gradient);
+      border: 1px solid #004e7c;
+      color: white;
+      padding: 14px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 16px;
+      position: relative;
+      overflow: hidden;
+      min-width: 60px;
+      box-shadow: 0 2px 5px rgba(0, 119, 190, 0.2);
+    }
+
+    .search-box button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .search-box button:hover::before {
+      left: 100%;
+    }
+
+    .search-box button:hover {
+      background: var(--light-ocean-gradient);
+      border-color: #006994;
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 119, 190, 0.3);
+    }
+
+    .search-box button:active {
+      transform: scale(0.98);
+    }
+
+    .search-box button i {
+      position: relative;
+      z-index: 2;
+      transition: var(--transition);
+    }
+
+    .search-box button:hover i {
+      transform: rotate(90deg) scale(1.1);
+    }
+
+    /* ===== NAVIGATION ACTIONS ===== */
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .user-box {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+
+    .user-box small {
+      color: #718096;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .user-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .user-actions a {
+      color: #0f1111;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .user-actions a:hover {
+      color: #0077be;
+      transform: translateY(-1px);
+      background: #e6f3f7;
+    }
+
+    .separator {
+      color: #cbd5e0;
+      font-size: 12px;
+    }
+
+    .logout-link:hover {
+      color: #0077be;
+      background: #e6f3f7;
+    }
+
+    .cart-btn {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid #d5d9d9;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .cart-btn:hover {
+      background: #e6f3f7;
+      border-color: #0077be;
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 119, 190, 0.2);
+    }
+
+    .cart-btn:hover i {
+      color: #0077be;
+    }
+
+    .cart-btn i {
+      font-size: 18px;
+      color: var(--dark);
+      transition: var(--transition);
+    }
+
+    .cart-count {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--ocean-gradient);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 20px;
+      min-width: 24px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0, 119, 190, 0.3);
+      border: 1px solid #004e7c;
+    }
+
+    /* ===== CATEGORY NAVIGATION ===== */
+    .nav-bottom {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-bottom .container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 12px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .category-btn {
+      background: var(--ocean-gradient);
+      color: white;
+      border: 1px solid #004e7c;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 119, 190, 0.2);
+    }
+
+    .category-btn:hover {
+      background: var(--light-ocean-gradient);
+      border-color: #006994;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 119, 190, 0.3);
+    }
+
+    .category-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 8px;
+      min-width: 250px;
+      display: none;
+      z-index: 1000;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .category-menu a {
+      display: block;
+      padding: 14px 20px;
+      font-size: 14px;
+      color: var(--dark);
+      border-bottom: 1px solid #f0f0f0;
+      transition: var(--transition);
+    }
+
+    .category-menu a:last-child {
+      border-bottom: none;
+    }
+
+    .category-menu a:hover {
+      background: linear-gradient(135deg, #e6f3f7, #cce7f0);
+      color: #0077be;
+      padding-left: 24px;
+    }
+
+    .store-link {
+      background: #ffffff;
+      border: 1px solid #d5d9d9;
+      color: #0f1111;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .store-link:hover {
+      background: #e6f3f7;
+      border-color: #0077be;
+      color: #0077be;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 119, 190, 0.2);
+      text-decoration: none;
+    }
+
+    /* ===== MOBILE MENU ===== */
+    .mobile-menu-toggle {
+      display: none;
+      background: var(--ocean-gradient);
+      border: 1px solid #004e7c;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 119, 190, 0.2);
+    }
+
+    .mobile-menu-toggle:hover {
+      background: var(--light-ocean-gradient);
+      border-color: #006994;
+      color: white;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 119, 190, 0.3);
+    }
+
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 80%;
+      max-width: 400px;
+      height: 100vh;
+      background: white;
+      z-index: 2000;
+      transition: var(--transition);
+      overflow-y: auto;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .mobile-nav.active {
+      left: 0;
+    }
+
+    .mobile-nav-header {
+      background: var(--ocean-gradient);
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 119, 190, 0.2);
+      border-bottom: 1px solid #004e7c;
+    }
+
+    .mobile-nav-close {
+      background: none;
+      border: none;
+      color: #0f1111;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 4px;
+      border-radius: 4px;
+    }
+
+    .mobile-nav-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .mobile-nav-content {
+      padding: 20px;
+      background: white;
+    }
+
+    .mobile-nav-section {
+      margin-bottom: 30px;
+    }
+
+    .mobile-nav-section h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #0077be;
+      margin-bottom: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .mobile-nav-section a {
+      display: block;
+      padding: 14px 16px;
+      color: #2d3748;
+      border-bottom: 1px solid #f0f4f8;
+      transition: var(--transition);
+      border-radius: 8px;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+
+    .mobile-nav-section a:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .mobile-nav-section a:hover {
+      background: linear-gradient(135deg, #e6f3f7, #cce7f0);
+      color: #0077be;
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(0, 119, 190, 0.15);
+    }
+
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      z-index: 1999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .mobile-overlay.active {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 1024px) {
+      .main-nav .container {
+        gap: 20px;
+      }
+      
+      .search {
+        max-width: 400px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .top-bar {
+        display: none;
+      }
+
+      .main-nav .container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 15px;
+      }
+
+      .mobile-menu-toggle {
+        display: block;
+        order: 1;
+      }
+
+      .logo {
+        order: 2;
+        flex: 1;
+        text-align: center;
+        margin: 0;
+      }
+
+      .logo img {
+        height: 40px;
+        width: auto;
+      }
+
+      .cart-btn {
+        order: 3;
+        width: 45px;
+        height: 45px;
+      }
+
+      .cart-btn i {
+        font-size: 16px;
+      }
+
+      .search {
+        order: 4;
+        width: 100%;
+        flex-basis: 100%;
+        margin-top: 10px;
+      }
+
+      .search-box {
+        border-radius: 25px;
+        height: 45px;
+      }
+
+      .search-box input {
+        padding: 12px 16px;
+        font-size: 14px;
+        height: 100%;
+      }
+
+      .search-box button {
+        padding: 12px 16px;
+        height: 100%;
+        font-size: 14px;
+      }
+
+      .nav-actions {
+        order: 3;
+        gap: 10px;
+      }
+
+      .user-box {
+        display: none;
+      }
+
+      .nav-bottom {
+        display: none;
+      }
+
+      .mobile-nav {
+        display: block;
+      }
+      
+      .mobile-overlay {
+        display: block;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-nav .container {
+        padding: 10px 10px;
+        gap: 10px;
+      }
+
+      .logo img {
+        height: 35px;
+      }
+
+      .cart-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .cart-btn i {
+        font-size: 14px;
+      }
+
+      .search {
+        margin-top: 8px;
+      }
+
+      .search-box {
+        height: 40px;
+      }
+
+      .search-box input {
+        padding: 10px 14px;
+        font-size: 13px;
+        height: 100%;
+      }
+
+      .search-box button {
+        padding: 10px 14px;
+        height: 100%;
+        font-size: 13px;
+      }
+
+      .mobile-menu-toggle {
+        padding: 8px;
+        font-size: 16px;
+      }
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .category-menu.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    /* ===== LOADING STATES ===== */
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    /* ===== ACCESSIBILITY ===== */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="container">
+      <div class="top-left">
+        <span onclick="changeLanguage('en')">🇺🇸 English</span>
+        <span onclick="changeCurrency('USD')">💵 USD</span>
+      </div>
+      <div class="top-right">
+        <a href="mailto:support@pacificmart.com">
+          <i class="fas fa-envelope"></i> support@pacificmart.com
+        </a>
+        <a href="tel:+1234567890">
+          <i class="fas fa-phone"></i> +1 234 567 890
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN NAVIGATION -->
+  <nav class="main-nav">
+    <div class="container">
+      <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <a href="{% url 'home' %}" class="logo">
+        <img src="{% static './images/logo.png' %}" alt="PacificMart">
+      </a>
+
+      <div class="search">
+        <form action="{% url 'search' %}" method="GET" onsubmit="handleSearch(event)">
+          <div class="search-box">
+            <input
+              type="text"
+              name="keyword"
+              placeholder="Search for products, brands..."
+              value="{{ keyword }}"
+              required
+            >
+            <button type="submit" title="Search">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="nav-actions">
+        {% if user.id is None %}
+        <div class="user-box">
+          <small>Welcome!</small>
+          <a href="{% url 'login' %}">Sign in</a>
+        </div>
+        {% else %}
+        <div class="user-box">
+          <small>Hi, {{ user.first_name }}!</small>
+          <div class="user-actions">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <span class="separator">|</span>
+            <a href="{% url 'logout' %}" class="logout-link">Logout</a>
+          </div>
+        </div>
+        {% endif %}
+
+        <a href="{% url 'cart' %}" class="cart-btn">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count">{{ cart_count|default:0 }}</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CATEGORY NAVIGATION -->
+  <div class="nav-bottom">
+    <div class="container">
+      <div style="position: relative;">
+        <button class="category-btn" onclick="toggleCategory()">
+          <i class="fas fa-bars"></i> All Categories
+        </button>
+        <div class="category-menu" id="categoryMenu">
+          <a href="{% url 'store' %}">
+            <i class="fas fa-th"></i> All Categories
+          </a>
+          {% for category in links %}
+          <a href="{{ category.get_url }}">
+            <i class="fas fa-angle-right"></i> {{ category.category_name }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <a href="{% url 'store' %}" class="store-link">
+        <i class="fas fa-store"></i> Browse Store
+      </a>
+    </div>
+  </div>
+
+  <!-- MOBILE NAVIGATION -->
+  <div class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-header">
+      <div class="logo">
+        <img src="{% static './images/logo.png' %}" alt="PacificMart">
+      </div>
+      <button class="mobile-nav-close" onclick="toggleMobileMenu()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="mobile-nav-content">
+      {% if user.id is None %}
+      <div class="mobile-nav-section">
+        <h3>Account</h3>
+        <a href="{% url 'login' %}">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </a>
+        <a href="{% url 'register' %}">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      </div>
+      {% else %}
+      <div class="mobile-nav-section">
+        <h3>Account</h3>
+        <a href="{% url 'dashboard' %}">
+          <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'my_orders' %}">
+          <i class="fas fa-receipt"></i> My Orders
+        </a>
+        <a href="{% url 'edit_profile' %}">
+          <i class="fas fa-user-edit"></i> Edit Profile
+        </a>
+        <a href="{% url 'logout' %}">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </div>
+      {% endif %}
+      
+      <div class="mobile-nav-section">
+        <h3>Categories</h3>
+        <a href="{% url 'store' %}">
+          <i class="fas fa-th"></i> All Categories
+        </a>
+        {% for category in links %}
+        <a href="{{ category.get_url }}">
+          <i class="fas fa-angle-right"></i> {{ category.category_name }}
+        </a>
+        {% endfor %}
+      </div>
+      
+      <div class="mobile-nav-section">
+        <h3>Support</h3>
+        <a href="mailto:support@pacificmart.com">
+          <i class="fas fa-envelope"></i> Email Support
+        </a>
+        <a href="tel:+1234567890">
+          <i class="fas fa-phone"></i> Call Us
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
+
+  <script>
+    // Category Menu Toggle
+    function toggleCategory() {
+      const menu = document.getElementById("categoryMenu");
+      menu.classList.toggle("show");
+    }
+
+    // Mobile Menu Toggle
+    function toggleMobileMenu() {
+      const mobileNav = document.getElementById("mobileNav");
+      const mobileOverlay = document.getElementById("mobileOverlay");
+      
+      mobileNav.classList.toggle("active");
+      
+      if (mobileNav.classList.contains("active")) {
+        mobileOverlay.style.opacity = "1";
+        mobileOverlay.style.visibility = "visible";
+        mobileOverlay.style.pointerEvents = "auto";
+        document.body.style.overflow = "hidden";
+      } else {
+        mobileOverlay.style.opacity = "0";
+        mobileOverlay.style.visibility = "hidden";
+        mobileOverlay.style.pointerEvents = "none";
+        document.body.style.overflow = "";
+      }
+    }
+
+    // Close category menu when clicking outside
+    document.addEventListener("click", function (e) {
+      const menu = document.getElementById("categoryMenu");
+      const categoryBtn = document.querySelector(".category-btn");
+      
+      if (!categoryBtn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove("show");
+      }
+    });
+
+    // Language and Currency functions (placeholders)
+    function changeLanguage(lang) {
+      console.log("Changing language to:", lang);
+      // Implement language change logic
+    }
+
+    function changeCurrency(currency) {
+      console.log("Changing currency to:", currency);
+      // Implement currency change logic
+    }
+
+    // Search functionality
+    function handleSearch(event) {
+      const searchInput = document.querySelector('.search-box input');
+      const searchValue = searchInput.value.trim();
+      
+      if (searchValue.length < 2) {
+        event.preventDefault();
+        shakeSearchBox();
+        return false;
+      }
+      
+      // Add loading state
+      const searchButton = document.querySelector('.search-box button');
+      const originalIcon = searchButton.innerHTML;
+      searchButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      searchButton.disabled = true;
+      
+      // Simulate search processing (remove in production)
+      setTimeout(() => {
+        searchButton.innerHTML = originalIcon;
+        searchButton.disabled = false;
+      }, 1000);
+      
+      return true;
+    }
+
+    function shakeSearchBox() {
+      const searchBox = document.querySelector('.search-box');
+      searchBox.style.animation = 'shake 0.5s ease-in-out';
+      searchBox.style.borderColor = '#f56565';
+      
+      setTimeout(() => {
+        searchBox.style.animation = '';
+        searchBox.style.borderColor = '';
+      }, 500);
+    }
+
+    // Add shake animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Add smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Navbar scroll effect
+    let lastScroll = 0;
+    const mainNav = document.querySelector('.main-nav');
+    
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      
+      if (currentScroll <= 0) {
+        mainNav.style.boxShadow = 'none';
+      } else {
+        mainNav.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+      }
+      
+      lastScroll = currentScroll;
+    });
+
+    // Initialize mobile overlay state
+    document.addEventListener('DOMContentLoaded', function() {
+      const mobileOverlay = document.getElementById("mobileOverlay");
+      if (mobileOverlay) {
+        mobileOverlay.style.opacity = "0";
+        mobileOverlay.style.visibility = "hidden";
+        mobileOverlay.style.pointerEvents = "none";
+      }
+    });
+  </script>
+</header>

@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    /* ===== BLUE OCEAN LOGIN THEME ===== */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0077be 0%, #004e7c 100%);
+      --secondary-gradient: linear-gradient(135deg, #00a8cc 0%, #0077be 100%);
+      --ocean-gradient: linear-gradient(135deg, #006994 0%, #004e7c 100%);
+      --light-ocean-gradient: linear-gradient(135deg, #00a8cc 0%, #006994 100%);
+      --dark: #1a202c;
+      --light: #f8fafc;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .ocean-login-container {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 25%, #bae6fd 50%, #7dd3fc 75%, #38bdf8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ocean-login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(0, 119, 190, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(0, 168, 204, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(0, 105, 148, 0.05) 0%, transparent 50%);
+      animation: float 20s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .login-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 119, 190, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 450px;
+      width: 100%;
+      padding: 40px;
+      position: relative;
+      z-index: 1;
+      transition: var(--transition);
+    }
+
+    .login-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 70px rgba(0, 119, 190, 0.2);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      background: var(--ocean-gradient);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 25px rgba(0, 119, 190, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-logo::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: rotate(45deg);
+      animation: shine 3s ease-in-out infinite;
+    }
+
+    @keyframes shine {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+      100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    }
+
+    .login-logo i {
+      font-size: 36px;
+      color: white;
+      position: relative;
+      z-index: 2;
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 8px;
+      background: var(--ocean-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .login-subtitle {
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .form-floating {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .form-control {
+      background: rgba(248, 250, 252, 0.8);
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 15px;
+      transition: var(--transition);
+      color: var(--dark);
+      height: auto;
+    }
+
+    .form-control:focus {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: #0077be;
+      box-shadow: 0 0 0 4px rgba(0, 119, 190, 0.1);
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    .form-label {
+      position: absolute;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 15px;
+      font-weight: 500;
+      pointer-events: none;
+      transition: var(--transition);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 0 8px;
+    }
+
+    .form-control:focus ~ .form-label,
+    .form-control:not(:placeholder-shown) ~ .form-label {
+      top: 0;
+      font-size: 12px;
+      color: #0077be;
+      font-weight: 600;
+    }
+
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .form-check-input {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1d5db;
+      border-radius: 6px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .form-check-input:checked {
+      background: var(--ocean-gradient);
+      border-color: #0077be;
+    }
+
+    .form-check-label {
+      color: #475569;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .forgot-link {
+      color: #0077be;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .forgot-link:hover {
+      color: #004e7c;
+      text-decoration: underline;
+    }
+
+    .login-btn {
+      background: var(--ocean-gradient);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(0, 119, 190, 0.3);
+    }
+
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .login-btn:hover::before {
+      left: 100%;
+    }
+
+    .login-btn:hover {
+      background: var(--light-ocean-gradient);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 119, 190, 0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 25px 0;
+      gap: 15px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+    }
+
+    .divider span {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .signup-link {
+      text-align: center;
+      margin-top: 25px;
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .signup-link a {
+      color: #0077be;
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+
+    .signup-link a:hover {
+      color: #004e7c;
+      text-decoration: underline;
+    }
+
+    .alert {
+      border-radius: 12px;
+      border: none;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+    }
+
+    .alert-warning {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+    }
+
+    .alert-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 30px 20px;
+        margin: 10px;
+      }
+      
+      .login-title {
+        font-size: 24px;
+      }
+      
+      .form-control {
+        padding: 14px 16px;
+      }
+    }
+</style>
+
+<div class="ocean-login-container">
+    {% if request.GET.command == 'verification' %}
+    {% if request.GET.email_sent == 'True' %}
+        <div class="alert alert-success" role="alert" style="max-width: 500px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-check-circle" style="font-size: 24px;"></i>
+                <div>
+                    <strong>Registration Successful!</strong><br>
+                    A verification email has been sent to <strong>{{ request.GET.email }}</strong>.
+                    <br><br>
+                    Please check your inbox and click the verification link to activate your account.
+                    <br><br>
+                    Already verified? <a href="{% url 'login' %}" style="color: white; text-decoration: underline;">Login</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert" style="max-width: 500px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 24px;"></i>
+                <div>
+                    <strong>Registration Issue!</strong><br>
+                    We couldn't send the verification email to <strong>{{ request.GET.email }}</strong>.
+                    <br><br>
+                    Please contact support or try registering again.
+                    <br><br>
+                    Already verified? <a href="{% url 'login' %}" style="color: white; text-decoration: underline;">Login</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% else %}
+    <div class="login-card">
+        {% include "includes/alerts.html" %}
+        
+        <div class="login-header">
+            <div class="login-logo">
+                <i class="fas fa-user"></i>
+            </div>
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-subtitle">Sign in to your PacificMart account</p>
+        </div>
+
+        <form action="{% url 'login' %}" method="POST" novalidate>
+            {% csrf_token %}
+
+            <div class="form-floating">
+                <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" required>
+                <label for="email" class="form-label">Email Address</label>
+            </div>
+
+            <div class="form-floating">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                <label for="password" class="form-label">Password</label>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                <a href="{% url 'forgotpassword' %}" class="forgot-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
+                Sign In
+            </button>
+        </form>
+
+        <div class="divider">
+            <span>OR</span>
+        </div>
+
+        <div class="signup-link">
+            Don't have an account? <a href="{% url 'register' %}">Sign Up</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock content %}

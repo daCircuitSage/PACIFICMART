@@ -1,0 +1,106 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Received</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .header {
+            background: linear-gradient(90deg, #e2136e, #f6921e);
+            color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 1px;
+            animation: slideDown 1s ease-out;
+        }
+        .header p {
+            margin-top: 8px;
+            font-size: 16px;
+            font-weight: 400;
+        }
+        .body {
+            padding: 30px 20px;
+            color: #333;
+        }
+        .body h2 {
+            font-size: 22px;
+            color: #e2136e;
+            margin-bottom: 15px;
+        }
+        .body p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .order-number {
+            background: #fce4f0;
+            color: #e2136e;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 10px;
+            display: inline-block;
+            letter-spacing: 1px;
+            font-size: 18px;
+            animation: pulse 1.5s infinite;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 13px;
+            color: #999;
+        }
+        @keyframes fadeIn {
+            0% {opacity:0; transform: translateY(20px);}
+            100% {opacity:1; transform: translateY(0);}
+        }
+        @keyframes slideDown {
+            0% {opacity:0; transform: translateY(-20px);}
+            100% {opacity:1; transform: translateY(0);}
+        }
+        @keyframes pulse {
+            0% {transform: scale(1);}
+            50% {transform: scale(1.05);}
+            100% {transform: scale(1);}
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🎉 Order Received!</h1>
+            <p>Hi {{user.first_name}}, your order has been received.</p>
+        </div>
+        <div class="body">
+            <h2>Thank you for shopping with us!</h2>
+            <p>We are reviewing your payment. Once verified, your order will be processed and shipped to you.</p>
+            <p>Your <strong>Order Number</strong> is:</p>
+            <div class="order-number">{{ order.order_number }}</div>
+            <p>Please keep this number for your reference.</p>
+        </div>
+        <div class="footer">
+            &copy; {{ now.year }} Your Store Name. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+{% endautoescape %}

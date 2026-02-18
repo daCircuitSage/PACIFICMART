@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+{% load tz %}
+
+{% block content %}
+<section class="section-content padding-y bg">
+<div class="container">
+
+    <h4 class="text-center mb-4">
+        Cash on Delivery – Pay Delivery Charge in Advance
+    </h4>
+
+    <div class="row">
+
+        <!-- 🔹 ORDER & ADDRESS INFO -->
+        <aside class="col-lg-8">
+            <div class="card mb-3">
+                <h5 class="card-header">Delivery Address</h5>
+                <div class="card-body">
+                    <p><strong>{{ order.first_name }} {{ order.last_name }}</strong></p>
+                    <p>
+                        {{ order.address_line_1 }}
+                        {% if order.address_line_2 %}, {{ order.address_line_2 }}{% endif %}
+                    </p>
+                    <p>{{ order.city }}, {{ order.state }}</p>
+                    <p>{{ order.country }}</p>
+                    <p>Email: {{ order.email }}</p>
+                    <p>Phone: {{ order.phone }}</p>
+
+                    {% if order.order_note %}
+                        <p><b>Order Note:</b> {{ order.order_note }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <p class="mb-1">
+                        <strong>Order Number:</strong> {{ order.order_number }}
+                    </p>
+                    <p class="mb-0">
+                        <strong>Order Date:</strong>
+                        {% localtime on %}
+                        {{ order.created_at|date:"M d, Y · h:i A" }}
+                        {% endlocaltime %}
+                    </p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 🔹 DELIVERY CHARGE PAYMENT -->
+        <aside class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+
+                    <h5 class="mb-3 text-center">Advance Payment Required</h5>
+
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Delivery Charge</span>
+                            <strong>৳ {{ order.tax }}</strong>
+                        </li>
+                    </ul>
+
+                    <p class="text-muted small">
+                        You must pay the delivery charge in advance.  
+                        Remaining product amount will be collected on delivery.
+                    </p>
+
+                    <!-- ✅ NEW: bKash / Nagad Payment -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        {% include "includes/alerts.html" %}
+
+                        <h6 class="mt-3 mb-2">Pay Delivery Charge Via</h6>
+
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio"
+                                   name="payment_method" value="bKash" required>
+                            <label class="form-check-label">
+                                bKash (Send Money)
+                                <br>
+                                <small class="text-muted">
+                                    bKash Number: <strong>{{ bkash_number }}</strong>
+                                </small>
+                            </label>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio"
+                                   name="payment_method" value="Nagad">
+                            <label class="form-check-label">
+                                Nagad (Send Money)
+                                <br>
+                                <small class="text-muted">
+                                    Nagad Number: <strong>{{ nagad_number }}</strong>
+                                </small>
+                            </label>
+                        </div>
+
+                        <div class="form-group mb-2">
+                            <label>Sender Mobile Number</label>
+                            <input type="text" name="sender_number"
+                                   class="form-control"
+                                   placeholder="01XXXXXXXXX" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label>Transaction ID</label>
+                            <input type="text" name="transaction_id"
+                                   class="form-control"
+                                   placeholder="e.g. 9F8A7B6C" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-warning btn-block">
+                            Confirm Cash on Delivery
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </aside>
+
+    </div>
+</div>
+</section>
+{% endblock %}

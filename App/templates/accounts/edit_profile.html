@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="section-content padding-y bg">
+    {% include "includes/alerts.html" %}
+
+    <div class="container">
+        <div class="row">
+            {% include "includes/dashboard_sidebar.html" %}
+
+            <main class="col-md-9">
+                <article class="card">
+                    <header class="card-header">
+                        <strong>Edit Your Profile</strong>
+                    </header>
+                    <div class="card-body">
+
+                        <!-- Profile Picture -->
+                        <div class="text-center mb-4">
+                            <img src="{{ userprofile.get_profile_picture_url }}?t={% now 'U' %}" 
+                                 alt="Profile Picture" 
+                                 class="rounded-circle border shadow-sm" 
+                                 style="width:120px; height:120px; object-fit:cover;">
+                        </div>
+
+                        <!-- Profile Form -->
+                        <form action="{% url 'edit_profile' %}" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            
+                            <!-- TEMPORARY DEBUG: Display form errors -->
+                            <!-- {% if user_form.errors or profile_form.errors %}
+                                <div class="alert alert-danger">
+                                    <h5>Please fix the following errors:</h5>
+                                    {% for field in user_form %}
+                                        {% if field.errors %}
+                                            <div class="mb-2">
+                                                <strong>{{ field.label }}:</strong>
+                                                {% for error in field.errors %}
+                                                    <div class="text-danger">{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% for field in profile_form %}
+                                        {% if field.errors %}
+                                            <div class="mb-2">
+                                                <strong>{{ field.label }}:</strong>
+                                                {% for error in field.errors %}
+                                                    <div class="text-danger">{{ error }}</div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endif %} -->
+                            <!-- END TEMPORARY DEBUG -->
+                            
+                            <div class="row g-3">
+
+                                <!-- First Name & Last Name -->
+                                <div class="col-md-6">
+                                    <label class="form-label">First Name</label>
+                                    {{ user_form.first_name }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Last Name</label>
+                                    {{ user_form.last_name }}
+                                </div>
+
+                                <!-- Phone & Profile Picture -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Phone Number</label>
+                                    {{ user_form.phone_number }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Profile Picture</label>
+                                    {{ profile_form.profile_picture }}
+                                </div>
+
+                                <!-- Address -->
+                                <div class="col-md-12">
+                                    <label class="form-label">Address Line 1</label>
+                                    {{ profile_form.address_line_1 }}
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">Address Line 2</label>
+                                    {{ profile_form.address_line_2 }}
+                                </div>
+
+                                <!-- City, State, Country -->
+                                <div class="col-md-4">
+                                    <label class="form-label">City</label>
+                                    {{ profile_form.city }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">State</label>
+                                    {{ profile_form.state }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Country</label>
+                                    {{ profile_form.country }}
+                                </div>
+
+                                <!-- Submit -->
+                                <div class="col-12 text-center mt-3">
+                                    <button type="submit" class="btn btn-primary btn-lg px-5">Save Changes</button>
+                                </div>
+
+                            </div>
+                        </form>
+
+                    </div>
+                </article>
+            </main>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}
