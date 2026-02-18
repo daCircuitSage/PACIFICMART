@@ -1,0 +1,38 @@
+databases:
+  - name: thepacificmart-db
+    plan: free
+    databaseName: thepacificmart
+    user: thepacificmart
+
+services:
+  - type: web
+    plan: free
+    name: thepacificmart
+    runtime: python
+    buildCommand: './build.sh'
+    startCommand: 'python -m gunicorn factors_Ecom.wsgi:application --bind 0.0.0.0:8001 --timeout 30 --workers 1 --max-requests 1000 --max-requests-jitter 50'
+    
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: thepacificmart-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "localhost,127.0.0.1"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "http://localhost:8001,http://127.0.0.1:8001"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      # Email Configuration - Use SendGrid (Render-compatible)
+      - key: EMAIL_HOST
+        value: "smtp.gmail.com"
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_HOST_USER
+        value: "thepacificmart.user@gmail.com"
+      - key: EMAIL_HOST_PASSWORD
+        value: "ogbp kosu jtza akwv"

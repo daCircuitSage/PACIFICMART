@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="section-content padding-y bg-light">
+  <div class="container">
+    <h4 class="text-center mb-10">Review Your Order and Make Payment</h4>
+
+    <div class="row g-4">
+
+      <!-- 🔹 BILLING ADDRESS & ORDER NOTE -->
+      <aside class="col-lg-8">
+        <div class="card mb-3">
+          <h5 class="card-header">Billing Address</h5>
+          <div class="card-body">
+            <p>{{ order.first_name }} {{ order.last_name }}</p>
+            <p>{{ order.address_line_1 }}{% if order.address_line_2 %}, {{ order.address_line_2 }}{% endif %}</p>
+            <p>{{ order.city }}, {{ order.state }}</p>
+            <p>{{ order.country }}</p>
+            <p>Email: {{ order.email }}</p>
+            <p>Phone: {{ order.phone }}</p>
+            {% if order.order_note %}
+              <p><b>Order Note:</b> {{ order.order_note }}</p>
+            {% else %}
+              <p><b>Order Note:</b> No Note</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 🔹 PRODUCT REVIEW -->
+        <div class="card">
+          <h5 class="card-header">Review Products</h5>
+          <div class="card-body">
+            <table class="table table-borderless table-shopping-cart">
+              <thead class="text-muted">
+                <tr class="small text-uppercase">
+                  <th scope="col">Product</th>
+                  <th scope="col" width="120">Quantity</th>
+                  <th scope="col" width="120">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in cart_items %}
+                <tr>
+                  <td>
+                    <figure class="itemside align-items-center">
+                      <div class="aside">
+                        <img src="{{ item.product.product_img.url }}" class="img-sm">
+                      </div>
+                      <figcaption class="info">
+                        <a href="{{ item.product.get_url }}" class="title text-dark">
+                          {{ item.product.product_name }}
+                        </a>
+                        <p class="text-muted small">
+                          {% for var in item.variations.all %}
+                            {{ var.variation_category|capfirst }} : {{ var.variation_value|capfirst }} <br>
+                          {% endfor %}
+                        </p>
+                      </figcaption>
+                    </figure>
+                  </td>
+                  <td>{{ item.quantity }}</td>
+                  <td>৳ {{ item.sub_total }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 🔹 PAYMENT & DELIVERY SUMMARY -->
+      <aside class="col-lg-4">
+        <div class="card mb-3">
+          <div class="card-body">
+            <h5 class="mb-3">Delivery Information</h5>
+            <ul class="list-group list-group-flush mb-3">
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Delivery Area</span>
+                <strong>{{ delivery_area|capfirst }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Delivery Charge</span>
+                <strong>৳ {{ delivery_charge }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span>Subtotal</span>
+                <strong>৳ {{ total }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span><strong>Grand Total</strong></span>
+                <strong>৳ {{ grand_total }}</strong>
+              </li>
+            </ul>
+            <small class="text-muted mb-3 d-block">
+              To change delivery area, please return to the cart page.
+            </small>
+
+            <h5 class="mb-3">Payment Methods</h5>
+            <a href="{% url 'bkash:pay_with_bkash' order.order_number %}" class="btn btn-danger btn-block mb-2" style="background:#e2136e; border:none;">Pay with bKash</a>
+            <a href="{% url 'nagad:pay_with_nagad' order.order_number %}" class="btn btn-block mb-2" style="background:#f6921e; color:#fff; border:none;">Pay with Nagad</a>
+            <a href="{% url 'cod:pay_cod' order.order_number %}" class="btn btn-outline-secondary btn-block">Cash on Delivery</a>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

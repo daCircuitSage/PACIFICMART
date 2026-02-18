@@ -1,0 +1,273 @@
+<aside class="dashboard-sidebar">
+    <div class="sidebar-header">
+        <div class="user-avatar">
+            <img src="{{ userprofile.get_profile_picture_url }}?t={% now 'U' %}" 
+                 alt="{{ user.full_name }}" 
+                 class="avatar-img">
+            <div class="avatar-status online"></div>
+        </div>
+        <div class="user-info">
+            <h6 class="user-name">{{ user.full_name|truncatechars:20 }}</h6>
+            <p class="user-email">{{ user.email|truncatechars:25 }}</p>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{% url 'dashboard' %}" 
+           class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="{% url 'my_orders' %}" 
+           class="nav-item {% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">
+            <i class="fas fa-shopping-bag"></i>
+            <span>My Orders</span>
+            {% if orders_count > 0 %}
+                <span class="nav-badge">{{ orders_count }}</span>
+            {% endif %}
+        </a>
+
+        <a href="{% url 'edit_profile' %}" 
+           class="nav-item {% if request.resolver_match.url_name == 'edit_profile' %}active{% endif %}">
+            <i class="fas fa-user-edit"></i>
+            <span>Edit Profile</span>
+        </a>
+
+        <a href="{% url 'change_password' %}" 
+           class="nav-item {% if request.resolver_match.url_name == 'change_password' %}active{% endif %}">
+            <i class="fas fa-lock"></i>
+            <span>Change Password</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{% url 'store' %}" class="back-to-store">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Store</span>
+        </a>
+    </div>
+</aside>
+
+<style>
+.dashboard-sidebar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.sidebar-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-avatar {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.avatar-img:hover {
+    transform: scale(1.05);
+}
+
+.avatar-status {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+}
+
+.avatar-status.online {
+    background-color: #10b981;
+}
+
+.user-info {
+    color: white;
+}
+
+.user-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    margin-bottom: 0.25rem;
+}
+
+.user-email {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin: 0;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: translateX(5px);
+}
+
+.nav-item.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: 500;
+}
+
+.nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: white;
+    border-radius: 0 4px 4px 0;
+}
+
+.nav-item i {
+    width: 20px;
+    margin-right: 0.75rem;
+    font-size: 1rem;
+}
+
+.nav-item span {
+    flex: 1;
+}
+
+.nav-badge {
+    background: #ef4444;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
+.sidebar-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.back-to-store {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.back-to-store:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.back-to-store i {
+    margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        position: static;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .sidebar-header {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .user-info {
+        color: #2d3748;
+    }
+    
+    .user-name {
+        color: #2d3748;
+    }
+    
+    .user-email {
+        color: #718096;
+        opacity: 1;
+    }
+    
+    .nav-item {
+        padding: 0.75rem 0.875rem;
+        color: #4a5568;
+        border-radius: 8px;
+    }
+    
+    .nav-item:hover {
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        color: #667eea;
+        transform: translateX(0);
+    }
+    
+    .nav-item.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .nav-item.active::before {
+        background: white;
+    }
+    
+    .sidebar-footer {
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .back-to-store {
+        color: #667eea;
+        border: 1px solid #e2e8f0;
+        background: white;
+    }
+    
+    .back-to-store:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-color: transparent;
+    }
+}
+</style>

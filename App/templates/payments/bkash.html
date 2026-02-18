@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .bkash-box{
+        max-width: 500px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.08);
+    }
+    .bkash-header{
+        text-align: center;
+        color: #e2136e;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .bkash-number{
+        background: #fde4ef;
+        padding: 12px;
+        text-align: center;
+        border-radius: 6px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    .guide li{
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+    .btn-bkash{
+        background: #e2136e;
+        color: #fff;
+        border: none;
+    }
+    .btn-bkash:hover{
+        background: #c51162;
+        color: #fff;
+    }
+</style>
+
+<div class="bkash-box">
+
+    <h4 class="bkash-header">Pay with bKash</h4>
+
+    <div class="bkash-number">
+        bKash Send Money Number <br>
+        <span>01XXXXXXXXX</span>
+    </div>
+
+    <!-- Android App Guide -->
+    <ul class="guide">
+        <li>📱 Open <b>bKash App</b> (Android)</li>
+        <li>➡️ Tap on <b>Send Money</b></li>
+        <li>📞 Enter this number: <b>01XXXXXXXXX</b></li>
+        <li>💰 Amount: <b>{{ order.order_total }} BDT</b></li>
+        <li>🔑 Enter your bKash PIN</li>
+        <li>📄 Copy the <b>Transaction ID (TrxID)</b></li>
+    </ul>
+
+    <hr>
+
+    <!-- Payment Form -->
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% include "includes/alerts.html" %}
+        
+        <div class="form-group">
+            <label>Your bKash Number</label>
+            <input type="text"
+                   name="bkash_number"
+                   class="form-control"
+                   placeholder="01XXXXXXXXX"
+                   required>
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Transaction ID (TrxID)</label>
+            <input type="text"
+                   name="trx_id"
+                   class="form-control"
+                   placeholder="Ex: A9B7C6D5"
+                   required>
+        </div>
+
+        <button type="submit" class="btn btn-bkash btn-block mt-4">
+            Submit Payment
+        </button>
+    </form>
+
+</div>
+
+{% endblock %}
