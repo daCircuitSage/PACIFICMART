@@ -55,15 +55,17 @@ def bkash_payment(request, order_number):
 
         CartItems.objects.filter(user=request.user).delete()
 
-        mail_subject = 'Thank you for your order!'
-        message = render_to_string('orders/order_recieved_email.html', {
-            'user': request.user,
-            'order': order,
-        })
-        to_email = request.user.email
-        send_email = EmailMessage(mail_subject, message, to=[to_email])
-        send_email.content_subtype = "html"
-        send_email.send()
+        # EMAIL DISABLED TEMPORARILY (Render free plan issue)
+        # Order confirmation email - DISABLED
+        # mail_subject = 'Thank you for your order!'
+        # message = render_to_string('orders/order_recieved_email.html', {
+        #     'user': request.user,
+        #     'order': order,
+        # })
+        # to_email = request.user.email
+        # send_email = EmailMessage(mail_subject, message, to=[to_email])
+        # send_email.content_subtype = "html"
+        # send_email.send()
 
         messages.success(request, "Payment submitted successfully! Waiting for verification.")
         # Redirect to invoice page with order_number
