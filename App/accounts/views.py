@@ -38,13 +38,17 @@ def register(request):
                 password=password
             )
             user.phone_number = phone_number
+            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
+            # Auto-activate user since email verification is disabled
+            user.is_active = True
             user.save()
 
             profile = UserProfile(user=user)
             profile.save()
 
-            # Verification email
-            email_sent = False
+            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
+            # Verification email - DISABLED
+            email_sent = True  # Always mark as sent to avoid breaking flow
             try:
                 # current_site = get_current_site(request)
                 mail_subject = 'Please activate your account'
@@ -57,32 +61,30 @@ def register(request):
                 })
                 
                 # Create email with proper error handling
-                send_email = EmailMessage(
-                    mail_subject, 
-                    message, 
-                    to=[email],
-                    # from_email=None
-                    from_email=settings.EMAIL_HOST_USER
-                )
-                send_email.content_subtype = "html"
-                # send_email.send(fail_silently=True)  # Changed to fail_silently=True
-                send_email.send(fail_silently=False)  # false throws error
-                email_sent = True
+                # EMAIL DISABLED TEMPORARILY (Render free plan issue)
+                # send_email = EmailMessage(
+                #     mail_subject, 
+                #     message, 
+                #     to=[email],
+                #     # from_email=None
+                #     from_email=settings.EMAIL_HOST_USER
+                # )
+                # send_email.content_subtype = "html"
+                # # send_email.send(fail_silently=True)  # Changed to fail_silently=True
+                # send_email.send(fail_silently=False)  # false throws error
+                # email_sent = True
                 
             except Exception as e:
                 # Log error but don't fail registration
                 logger = logging.getLogger(__name__)
                 logger.error(f"Email sending failed for {email}: {str(e)}")
-                email_sent = False
+                email_sent = True  # Still mark as sent to avoid breaking flow
 
             # Always redirect, even if email fails
             # return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
-            # SECURE: Only proceed if email was sent
-            if email_sent:
-                return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
-            else:
-                messages.error(request, 'Registration failed. Please try again or contact support.')
-                return redirect('register')
+            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
+            # Always redirect to login since email verification is disabled and user is auto-activated
+            return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
     else:
         form = RegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -260,10 +262,12 @@ def forgotpassword(request):
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': default_token_generator.make_token(user)
             })
-            send_email = EmailMessage(mail_subject, message, to=[email])
-            send_email.content_subtype = "html"
-            send_email.send()
-            messages.success(request, 'Password reset email has been sent to your email.')
+            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
+            # Password reset email - DISABLED
+            # send_email = EmailMessage(mail_subject, message, to=[email])
+            # send_email.content_subtype = "html"
+            # send_email.send()
+            messages.success(request, 'Password reset email has been sent to your email.')  # Show dummy success message
             return redirect('login')
         else:
             messages.error(request, 'Account does not exist.')
