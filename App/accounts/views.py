@@ -45,12 +45,18 @@ def register(request):
             profile.save()
 
             # Send verification email using Brevo
+            print(f"DEBUG: User object created: {user}")
+            print(f"DEBUG: User email: {user.email}")
+            print(f"DEBUG: User ID: {user.pk}")
+            print(f"DEBUG: Domain: {request.get_host()}")
+            
             email_sent = send_registration_email(user, request.get_host())
+            print(f"DEBUG: Email send result: {email_sent}")
             
             if email_sent:
                 messages.success(request, 'Registration successful! Please check your email to activate your account.')
             else:
-                messages.warning(request, 'Registration successful! However, we couldn\'t send the verification email. Please contact support.')
+                messages.warning(request, 'Registration successful! However, we couldn\'t send verification email. Please contact support.')
 
             return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
     else:
