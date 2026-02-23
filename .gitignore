@@ -15,7 +15,7 @@ envEcom/
 venv/
 
 .env.render
-
+.env.example
 .env
 
 *.log
