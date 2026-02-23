@@ -691,20 +691,14 @@
                 <i class="fas fa-check-circle" style="font-size: 24px;"></i>
 
                 <div>
-
                     <strong>Registration Successful!</strong><br>
-
-                    You can login with your email <strong>{{ request.GET.email }}</strong>.
-
+                    A verification email has been sent to <strong>{{ request.GET.email }}</strong>.
                     <br><br>
-
-                    Please login and enjoy. we are working on this site, to make this site more user-friendly. If you are facing any issue, please contact us.
-
+                    Please check your inbox and click the verification link to activate your account.
                     <br><br>
-
                     Already verified? <a href="{% url 'login' %}" style="color: white; text-decoration: underline;">Login</a>
-
                 </div>
+            </div>
 
             </div>
 
