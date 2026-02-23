@@ -544,9 +544,9 @@
 
           <!-- PRICE SECTION -->
           <div class="pd-price-section">
-            <div class="pd-price">${{ single_product.product_price }}</div>
+            <div class="pd-price">৳{{ single_product.product_price }}</div>
             {% if single_product.original_price %}
-              <div class="pd-original-price">${{ single_product.original_price }}</div>
+              <div class="pd-original-price">৳{{ single_product.original_price }}</div>
               <div class="pd-discount">Save {{ single_product.discount_percentage }}%</div>
             {% endif %}
           </div>
