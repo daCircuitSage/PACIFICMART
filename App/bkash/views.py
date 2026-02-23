@@ -7,6 +7,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.urls import reverse
 from factors_Ecom.validators import is_valid_bangladeshi_phone as bangladeshi_number
+from factors_Ecom.utils import send_order_confirmation_email
 
 
 def bkash_payment(request, order_number):
@@ -55,17 +56,14 @@ def bkash_payment(request, order_number):
 
         CartItems.objects.filter(user=request.user).delete()
 
-        # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-        # Order confirmation email - DISABLED
-        # mail_subject = 'Thank you for your order!'
-        # message = render_to_string('orders/order_recieved_email.html', {
-        #     'user': request.user,
-        #     'order': order,
-        # })
-        # to_email = request.user.email
-        # send_email = EmailMessage(mail_subject, message, to=[to_email])
-        # send_email.content_subtype = "html"
-        # send_email.send()
+        # Send order confirmation email using Brevo
+        try:
+            send_order_confirmation_email(request.user, order)
+        except Exception as e:
+            # Log error but don't fail the order process
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send order confirmation email: {str(e)}")
 
         messages.success(request, "Payment submitted successfully! Waiting for verification.")
         # Redirect to invoice page with order_number

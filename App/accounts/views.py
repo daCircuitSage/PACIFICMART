@@ -16,6 +16,7 @@ import requests
 import logging
 from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
+from factors_Ecom.utils import send_registration_email, send_password_reset_email
 
 
 
@@ -38,53 +39,20 @@ def register(request):
                 password=password
             )
             user.phone_number = phone_number
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Auto-activate user since email verification is disabled
-            user.is_active = True
             user.save()
 
             profile = UserProfile(user=user)
             profile.save()
 
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Verification email - DISABLED
-            email_sent = True  # Always mark as sent to avoid breaking flow
-            try:
-                # current_site = get_current_site(request)
-                mail_subject = 'Please activate your account'
-                message = render_to_string('accounts/account_verification_email.html', {
-                    'user': user,
-                    # 'domain': current_site.domain,
-                    'domain': request.get_host(),  #current_site This gives 127.0.0.1:8000 or your domain
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token': default_token_generator.make_token(user)
-                })
-                
-                # Create email with proper error handling
-                # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-                # send_email = EmailMessage(
-                #     mail_subject, 
-                #     message, 
-                #     to=[email],
-                #     # from_email=None
-                #     from_email=settings.EMAIL_HOST_USER
-                # )
-                # send_email.content_subtype = "html"
-                # # send_email.send(fail_silently=True)  # Changed to fail_silently=True
-                # send_email.send(fail_silently=False)  # false throws error
-                # email_sent = True
-                
-            except Exception as e:
-                # Log error but don't fail registration
-                logger = logging.getLogger(__name__)
-                logger.error(f"Email sending failed for {email}: {str(e)}")
-                email_sent = True  # Still mark as sent to avoid breaking flow
+            # Send verification email using Brevo
+            email_sent = send_registration_email(user, request.get_host())
+            
+            if email_sent:
+                messages.success(request, 'Registration successful! Please check your email to activate your account.')
+            else:
+                messages.warning(request, 'Registration successful! However, we couldn\'t send the verification email. Please contact support.')
 
-            # Always redirect, even if email fails
-            # return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Always redirect to login since email verification is disabled and user is auto-activated
-            return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
+            return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
     else:
         form = RegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -253,21 +221,15 @@ def forgotpassword(request):
         email = request.POST['email']
         if Account.objects.filter(email=email).exists():
             user = Account.objects.get(email=email)
-            # current_site = get_current_site(request)
-            mail_subject = 'Reset your password'
-            message = render_to_string('accounts/reset_password_email.html', {
-                'user': user,
-                # 'domain': current_site,
-                'domain': request.get_host(), # fix: get the domain from the request
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user)
-            })
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Password reset email - DISABLED
-            # send_email = EmailMessage(mail_subject, message, to=[email])
-            # send_email.content_subtype = "html"
-            # send_email.send()
-            messages.success(request, 'Password reset email has been sent to your email.')  # Show dummy success message
+            
+            # Send password reset email using Brevo
+            email_sent = send_password_reset_email(user, request.get_host())
+            
+            if email_sent:
+                messages.success(request, 'Password reset email has been sent to your email.')
+            else:
+                messages.warning(request, 'We couldn\'t send the password reset email. Please try again later.')
+            
             return redirect('login')
         else:
             messages.error(request, 'Account does not exist.')

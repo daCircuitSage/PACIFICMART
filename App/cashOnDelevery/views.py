@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import render, redirect, get_object_or_404
 from orders.models import Payment, Order, OrderProduct
 from cart.models import CartItems
@@ -8,7 +5,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.utils import timezone
 from factors_Ecom.validators import is_valid_bangladeshi_phone as bangladeshi_number
-
+from factors_Ecom.utils import send_order_confirmation_email
 
 def cod_payment(request, order_number):
     order = get_object_or_404(Order, order_number=order_number)
@@ -55,6 +52,15 @@ def cod_payment(request, order_number):
             item.product.save()
 
         cart_items.delete()
+
+        # Send order confirmation email using Brevo
+        try:
+            send_order_confirmation_email(request.user, order)
+        except Exception as e:
+            # Log error but don't fail the order process
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send order confirmation email: {str(e)}")
 
         messages.success(
             request,

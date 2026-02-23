@@ -368,7 +368,13 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 
 
 
+
 # ================= EMAIL =================
+
+# Brevo Transactional Email API Configuration
+BREVO_API_KEY = config('BREVO_API_KEY', default='')
+BREVO_SENDER_EMAIL = config('BREVO_SENDER_EMAIL', default='')
+BREVO_SENDER_NAME = config('BREVO_SENDER_NAME', default='PacificMart')
 
 # EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
@@ -377,6 +383,7 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend' # to mail
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # to console
+
 
 
 
