@@ -352,7 +352,7 @@ SESSION_COOKIE_SECURE = not DEBUG
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-SESSION_SAVE_EVERY_REQUEST = False
+SESSION_SAVE_EVERY_REQUEST = True
 
 
 
@@ -408,6 +408,7 @@ else:
 
 
 
+
 EMAIL_USE_TLS = True
 
 EMAIL_USE_SSL = False
@@ -427,6 +428,18 @@ EMAIL_FAIL_SILENTLY = False  # Show errors for debugging
 if DEBUG and not EMAIL_HOST_USER:
 
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+
+# ================= BREVO EMAIL CONFIGURATION =================
+
+# Brevo API configuration (primary email service)
+
+BREVO_API_KEY = config('BREVO_API_KEY', default='')
+
+BREVO_SENDER_EMAIL = config('BREVO_SENDER_EMAIL', default='')
+
+BREVO_SENDER_NAME = config('BREVO_SENDER_NAME', default='PacificMart')
 
 
 

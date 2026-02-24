@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Resend Verification Email - PacificMart{% endblock %}
+
+{% block content %}
+<section class="section-content padding-y">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-envelope-circle-check text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h4 class="card-title mb-2">Resend Verification</h4>
+                            <p class="text-muted">Didn't receive the verification email? Enter your email address below and we'll send it again.</p>
+                        </div>
+
+                        <form method="POST" id="resendForm">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                    <input type="email" 
+                                           class="form-control" 
+                                           id="email" 
+                                           name="email" 
+                                           placeholder="Enter your email address"
+                                           required
+                                           autocomplete="email">
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    <span id="btnText">Send Verification Email</span>
+                                </button>
+                                <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Back to Login
+                                </a>
+                            </div>
+                        </form>
+
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                Not registered yet? 
+                                <a href="{% url 'register' %}" class="text-decoration-none">Create an account</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.section-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.card {
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.card-title {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.form-label {
+    color: #4a5568;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.input-group-text {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-right: none;
+    color: #667eea;
+}
+
+.input-group .form-control {
+    border-left: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-outline-secondary {
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background: #f8fafc;
+}
+
+/* Loading state */
+.loading .spinner-border {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+@media (max-width: 768px) {
+    .section-content {
+        padding: 1rem 0;
+        align-items: flex-start;
+        padding-top: 2rem;
+    }
+    
+    .card {
+        margin: 0 1rem;
+    }
+}
+</style>
+
+<script>
+document.getElementById('resendForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const originalContent = btnText.innerHTML;
+    
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Sending...';
+    
+    // Submit form normally (not AJAX to handle messages properly)
+    // The loading state will be reset when page reloads
+});
+</script>
+{% endblock %}

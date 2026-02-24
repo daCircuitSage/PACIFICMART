@@ -3,18 +3,39 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Track displayed messages to prevent duplicates
+        const displayedMessages = new Set();
+        
         {% for message in messages %}
-            Swal.fire({
-                title: "{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Error{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}Success{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}Warning{% else %}Info{% endif %}",
-                text: "{{ message|escapejs }}",
-                icon: "{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}error{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}success{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}warning{% else %}info{% endif %}",
-                timer: 3000,
-                timerProgressBar: true,
-                showConfirmButton: false,
-                position: 'top-end',
-                toast: true
-            });
+            // Create unique identifier for each message
+            const messageId = "{{ message.tags|default:'info' }}-{{ message.message|escapejs|slice:':20' }}";
+            
+            // Only show if not already displayed
+            if (!displayedMessages.has(messageId)) {
+                displayedMessages.add(messageId);
+                
+                Swal.fire({
+                    title: "{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}Error{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}Success{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}Warning{% else %}Info{% endif %}",
+                    text: "{{ message|escapejs }}",
+                    icon: "{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}error{% elif message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}success{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}warning{% else %}info{% endif %}",
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                    position: 'top-end',
+                    toast: true
+                });
+            }
         {% endfor %}
+        
+        // Clear messages after display to prevent persistence
+        setTimeout(function() {
+            fetch('/clear-messages/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+        }, 3500);
     });
 </script>
 {% endif %}

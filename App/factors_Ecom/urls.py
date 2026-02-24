@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from django.urls import path, include
 
-from .views import home
+from .views import home, clear_messages
 
 from django.conf import settings
 
@@ -15,6 +15,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('', home, name='home'),
+
+    path('clear-messages/', clear_messages, name='clear_messages'),
 
     path('store/', include('product.urls')),
 

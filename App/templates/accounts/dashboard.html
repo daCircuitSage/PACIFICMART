@@ -604,9 +604,31 @@
 }
 
 /* Responsive Design */
+@media (max-width: 992px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .welcome-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .welcome-time {
+        text-align: center;
+    }
+}
+
 @media (max-width: 768px) {
     .section-content {
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        padding: 1rem;
+    }
+    
+    .container {
+        padding: 0 0.5rem;
     }
     
     .welcome-header {
@@ -621,10 +643,12 @@
     
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
     .actions-grid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
     }
     
     .order-item {
@@ -663,6 +687,84 @@
         white-space: normal;
         overflow: visible;
         text-overflow: clip;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-content {
+        padding: 0.75rem;
+    }
+    
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+    
+    .welcome-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 1.75rem;
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .order-item {
+        padding: 0.75rem;
+    }
+    
+    .order-info h6 {
+        font-size: 0.9rem;
+    }
+    
+    .order-meta {
+        font-size: 0.8rem;
+    }
+    
+    .profile-content {
+        gap: 1rem;
+    }
+    
+    .profile-avatar img {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .profile-info h5 {
+        font-size: 1.1rem;
+    }
+    
+    .profile-details {
+        gap: 0.75rem;
+    }
+    
+    .detail-row {
+        padding: 0.5rem;
+    }
+    
+    .detail-label {
+        font-size: 0.85rem;
+    }
+    
+    .detail-value {
+        font-size: 0.9rem;
     }
 }
 </style>
