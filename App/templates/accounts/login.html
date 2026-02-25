@@ -993,6 +993,11 @@
 </div>
 
 
+<!-- Email Status Checker -->
+{% if request.GET.command == 'verification' and request.GET.async == 'true' %}
+<script src="{% static 'js/email-status.js' %}"></script>
+{% endif %}
+
 
 {% endblock content %}
 

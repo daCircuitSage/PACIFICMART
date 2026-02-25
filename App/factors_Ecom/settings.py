@@ -473,4 +473,25 @@ AUTHENTICATION_BACKENDS = [
 
 
 
+# ================= CELERY CONFIGURATION =================
+
+# Celery Configuration
+CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://localhost:6379/0')
+
+# Fallback to database if Redis not available
+if not config('CELERY_BROKER_URL', default=''):
+    CELERY_BROKER_URL = 'django://'
+    CELERY_RESULT_BACKEND = 'django://'
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# Email sending configuration
+CELERY_EMAIL_TASK_RETRY_DELAY = 60  # seconds
+CELERY_EMAIL_TASK_MAX_RETRIES = 3
+
 # ================= END =================

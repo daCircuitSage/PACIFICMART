@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
+from django.utils import timezone
 import requests
 import logging
 from django.conf import settings
@@ -33,7 +34,7 @@ def register(request):
             # Check if user already exists but is inactive
             existing_user = Account.objects.filter(email__iexact=email).first()
             if existing_user and not existing_user.is_active:
-                # Delete the inactive user and allow re-registration
+                # Delete inactive user and allow re-registration
                 existing_user.delete()
                 UserProfile.objects.filter(user=existing_user).delete()
 
@@ -45,30 +46,41 @@ def register(request):
                 password=password
             )
             user.phone_number = phone_number
-            # RE-ENABLED: User is NOT auto-activated, requires email verification
+            # User is NOT auto-activated, requires email verification
             user.is_active = False
             user.save()
 
             profile = UserProfile(user=user)
             profile.save()
 
-            # RE-ENABLED: Send verification email using Brevo
-            email_sent = False
+            # Create initial email status record
+            EmailStatus.objects.create(
+                user=user,
+                email_type='verification',
+                status='pending'
+            )
+
+            # Queue email sending asynchronously
+            domain = request.get_host()
+            protocol = 'https' if request.is_secure() else 'http'
+            
             try:
-                from .brevo_email import send_verification_email_brevo
-                email_sent = send_verification_email_brevo(request, user)
+                # Send email asynchronously
+                task = send_verification_email_async.delay(
+                    user_id=user.id,
+                    domain=domain,
+                    protocol=protocol
+                )
                 
-                if email_sent:
-                    messages.success(request, 'Registration successful! Please check your email to activate your account.')
-                else:
-                    messages.warning(request, 'Registration successful but email sending failed. Please try to resend verification email.')
-                    
+                # Immediate response to user
+                messages.success(request, 'Registration successful! Please check your email to activate your account.')
+                
             except Exception as e:
                 logger = logging.getLogger(__name__)
-                logger.error(f"Email sending failed for {email}: {str(e)}")
-                messages.warning(request, 'Registration successful but email sending failed. Please try to resend verification email.')
+                logger.error(f"Failed to queue email sending for {email}: {str(e)}")
+                messages.warning(request, 'Registration successful! Please check your email to activate your account.')
 
-            return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
+            return redirect('/accounts/login/?command=verification&email=' + email + '&async=true')
     else:
         form = RegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -224,12 +236,30 @@ def activate(request, uidb64, token):
         user = None
 
     if user is not None and default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        messages.success(request, 'Congratulations! Your account is activated.')
-        return redirect('login')
+        # Check if user is already active
+        if user.is_active:
+            messages.info(request, 'Your account is already activated. You can log in.')
+        else:
+            user.is_active = True
+            user.save()
+            
+            # Update email status to sent
+            from .models import EmailStatus
+            EmailStatus.objects.filter(
+                user=user, 
+                email_type='verification'
+            ).update(status='completed', sent_at=timezone.now())
+            
+            messages.success(request, 'Congratulations! Your account has been activated successfully.')
+        
+        # Clear any existing messages to prevent confusion
+        from django.contrib.messages import get_messages
+        storage = get_messages(request)
+        storage.used = True
+        
+        return redirect('/accounts/login/?command=activated&email=' + user.email)
     else:
-        messages.error(request, 'Invalid activation link.')
+        messages.error(request, 'Invalid or expired activation link. Please try registering again or contact support.')
         return redirect('register')
 
 def forgotpassword(request):
