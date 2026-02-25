@@ -23,11 +23,17 @@ def send_verification_email_async(user, request):
     """
     def send_email_thread():
         try:
+            # Get domain properly - handle both development and production
+            domain = request.get_host()
+            if not domain or domain == 'testserver':
+                # Fallback for testing or invalid domains
+                domain = getattr(settings, 'SITE_DOMAIN', 'thepacificmart.onrender.com')
+            
             current_site = get_current_site(request)
             mail_subject = 'Please activate your account'
             message = render_to_string('accounts/account_verification_email.html', {
                 'user': user,
-                'domain': request.get_host(),
+                'domain': domain,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': account_activation_token.make_token(user)
             })
@@ -39,7 +45,7 @@ def send_verification_email_async(user, request):
                 from_email=getattr(settings, 'EMAIL_HOST_USER', None)
             )
             send_email.content_subtype = "html"
-            send_email.send(fail_silently=True)
+            send_email.send(fail_silently=True)  # Production-safe: fail silently
             
             logger.info(f"Verification email sent successfully to {user.email}")
             
