@@ -14,7 +14,8 @@ class MyAccountManager(BaseUserManager):
             email = self.normalize_email(email),
             username = username,
             first_name = first_name,
-            last_name = last_name
+            last_name = last_name,
+            is_email_verified = False  # Explicitly set default
         )
         user.set_password(password)
         user.save(using=self._db)
@@ -53,6 +54,7 @@ class Account(AbstractUser):
     is_active = models.BooleanField(default=False)  # Require email verification
     is_staff = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
+    is_email_verified = models.BooleanField(default=False)  # Email verification status
 
 
     objects = MyAccountManager()

@@ -9,7 +9,8 @@ class RegistrationForm(forms.ModelForm):
         'class': 'form-control',
     }))
     confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={
-        'placeholder': 'Confirm Password'
+        'placeholder': 'Confirm Password',
+        'class': 'form-control',
     }))
     class Meta:
         model = Account

@@ -14,6 +14,7 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 import requests
 import logging
+import smtplib
 from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
 
@@ -23,104 +24,149 @@ def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            phone_number = form.cleaned_data['phone_number']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            username = email.split("@")[0]
-
-            user = Account.objects.create_user(
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                username=username,
-                password=password
-            )
-            user.phone_number = phone_number
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Auto-activate user since email verification is disabled
-            user.is_active = True
-            user.save()
-
-            profile = UserProfile(user=user)
-            profile.save()
-
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Verification email - DISABLED
-            email_sent = True  # Always mark as sent to avoid breaking flow
             try:
-                # current_site = get_current_site(request)
-                mail_subject = 'Please activate your account'
-                message = render_to_string('accounts/account_verification_email.html', {
-                    'user': user,
-                    # 'domain': current_site.domain,
-                    'domain': request.get_host(),  #current_site This gives 127.0.0.1:8000 or your domain
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token': default_token_generator.make_token(user)
-                })
-                
-                # Create email with proper error handling
-                # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-                # send_email = EmailMessage(
-                #     mail_subject, 
-                #     message, 
-                #     to=[email],
-                #     # from_email=None
-                #     from_email=settings.EMAIL_HOST_USER
-                # )
-                # send_email.content_subtype = "html"
-                # # send_email.send(fail_silently=True)  # Changed to fail_silently=True
-                # send_email.send(fail_silently=False)  # false throws error
-                # email_sent = True
-                
-            except Exception as e:
-                # Log error but don't fail registration
-                logger = logging.getLogger(__name__)
-                logger.error(f"Email sending failed for {email}: {str(e)}")
-                email_sent = True  # Still mark as sent to avoid breaking flow
+                first_name = form.cleaned_data['first_name']
+                last_name = form.cleaned_data['last_name']
+                phone_number = form.cleaned_data['phone_number']
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['password']
+                username = email.split("@")[0]
 
-            # Always redirect, even if email fails
-            # return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Always redirect to login since email verification is disabled and user is auto-activated
-            return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
+                # Create user account
+                user = Account.objects.create_user(
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    username=username,
+                    password=password
+                )
+                user.phone_number = phone_number
+                user.is_active = False  # Require email verification
+                user.is_email_verified = False  # Explicitly set verification status
+                user.save()
+
+                # Create user profile
+                profile = UserProfile(user=user)
+                profile.save()
+
+                # Send verification email
+                email_sent = send_verification_email(request, user, email)
+                
+                if email_sent:
+                    messages.success(request, 'Registration successful! Please check your email to activate your account.')
+                    return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
+                else:
+                    # Email failed but user is created - provide resend option
+                    messages.warning(request, 'Registration successful but verification email could not be sent. Please request a resend below.')
+                    return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=False')
+                    
+            except Exception as e:
+                logger = logging.getLogger(__name__)
+                logger.error(f"Registration error: {str(e)}")
+                messages.error(request, 'An error occurred during registration. Please try again.')
+                return redirect('register')
     else:
         form = RegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
+
+
+def send_verification_email(request, user, email):
+    """Send verification email using Brevo with proper error detection"""
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Validate email configuration first
+        if not settings.DEFAULT_FROM_EMAIL:
+            logger.error("DEFAULT_FROM_EMAIL not configured")
+            return False
+            
+        # Get current site with fallback
+        current_site = get_current_site(request)
+        domain = current_site.domain if current_site else request.get_host()
+        
+        # Generate verification link
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        
+        # Render email template
+        mail_subject = 'Activate your PacificMart Account'
+        message = render_to_string('accounts/account_verification_email.html', {
+            'user': user,
+            'domain': domain,
+            'uid': uid,
+            'token': token
+        })
+        
+        # Create email with proper configuration
+        send_email = EmailMessage(
+            subject=mail_subject,
+            body=message,
+            from_email=f"{settings.BREVO_SENDER_NAME} <{settings.DEFAULT_FROM_EMAIL}>",
+            to=[email]
+        )
+        send_email.content_subtype = "html"
+        
+        # Send with timeout and explicit error handling
+        result = send_email.send(fail_silently=False)
+        
+        # Check if email was actually sent (result = 1 means success)
+        if result == 1:
+            logger.info(f"Verification email sent successfully to {email}")
+            return True
+        else:
+            logger.error(f"Email sending returned {result} for {email}")
+            return False
+            
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"SMTP authentication failed for {email}: {str(e)}")
+        return False
+    except smtplib.SMTPConnectError as e:
+        logger.error(f"SMTP connection failed for {email}: {str(e)}")
+        return False
+    except smtplib.SMTPException as e:
+        logger.error(f"SMTP error for {email}: {str(e)}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error sending verification email to {email}: {str(e)}")
+        return False
 
 def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-        user = auth.authenticate(email=email, password=password)
+        
+        try:
+            user = auth.authenticate(email=email, password=password)
 
-        if user is not None:
-            # Check if user is active
-            if user.is_active:
-                session_key_before = _cart_id(request)
-                auth.login(request, user)
-                merge_carts(user, session_key_before)
+            if user is not None:
+                # Check if user is active
+                if user.is_active:
+                    session_key_before = _cart_id(request)
+                    auth.login(request, user)
+                    merge_carts(user, session_key_before)
 
-                # Vulnerability found: Direct redirect without checking if URL is safe
-                    # Malicious users could craft links like:
-                        # ?next=http://evil.com/steal-data
-                # url = request.GET.get('next') or 'dashboard'
-                # messages.success(request, 'You are now logged in.')
-                # return redirect(url)
-                # SECURE CODE: resolve Only allows redirects to current host Defaults to 'dashboard' for invalid URLs
-                next_url = request.GET.get('next')
-                if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
-                    url = next_url
+                    # Secure redirect handling
+                    next_url = request.GET.get('next')
+                    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                        url = next_url
+                    else:
+                        url = 'dashboard'
+                    
+                    messages.success(request, 'You are now logged in.')
+                    return redirect(url)
                 else:
-                    url = 'dashboard'
-                return redirect(url)
+                    messages.error(request, 'Please verify your email address before logging in.')
+                    return redirect('login')
             else:
-                messages.error(request, 'Please verify your email address before logging in.')
+                messages.error(request, 'Invalid login credentials')
                 return redirect('login')
-        else:
-            messages.error(request, 'Invalid login credentials')
+                
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Login error: {str(e)}")
+            messages.error(request, 'An error occurred during login. Please try again.')
             return redirect('login')
+            
     return render(request, 'accounts/login.html')
 
 @login_required(login_url='login')
@@ -241,6 +287,7 @@ def activate(request, uidb64, token):
 
     if user is not None and default_token_generator.check_token(user, token):
         user.is_active = True
+        user.is_email_verified = True  # Mark email as verified
         user.save()
         messages.success(request, 'Congratulations! Your account is activated.')
         return redirect('login')
@@ -248,31 +295,106 @@ def activate(request, uidb64, token):
         messages.error(request, 'Invalid activation link.')
         return redirect('register')
 
+def resend_verification_email(request):
+    """Resend verification email for inactive users"""
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        try:
+            user = Account.objects.get(email=email)
+            
+            if user.is_active:
+                messages.info(request, 'This account is already activated. You can login.')
+                return redirect('login')
+                
+            if user.is_email_verified:
+                # This shouldn't happen but handle it gracefully
+                user.is_active = True
+                user.save()
+                messages.info(request, 'Your account is already verified. You can login.')
+                return redirect('login')
+            
+            # Resend verification email
+            email_sent = send_verification_email(request, user, email)
+            
+            if email_sent:
+                messages.success(request, 'Verification email has been resent. Please check your inbox.')
+                return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
+            else:
+                messages.error(request, 'Failed to send verification email. Please try again later or contact support.')
+                return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=False')
+                
+        except Account.DoesNotExist:
+            messages.error(request, 'No account found with this email address.')
+            return redirect('/accounts/login/?command=resend')
+            
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Resend verification error: {str(e)}")
+            messages.error(request, 'An error occurred. Please try again.')
+            return redirect('/accounts/login/?command=resend')
+    
+    # GET request - show resend form
+    return render(request, 'accounts/resend_verification.html')
+
 def forgotpassword(request):
     if request.method == "POST":
         email = request.POST['email']
-        if Account.objects.filter(email=email).exists():
-            user = Account.objects.get(email=email)
-            # current_site = get_current_site(request)
-            mail_subject = 'Reset your password'
-            message = render_to_string('accounts/reset_password_email.html', {
-                'user': user,
-                # 'domain': current_site,
-                'domain': request.get_host(), # fix: get the domain from the request
-                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                'token': default_token_generator.make_token(user)
-            })
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Password reset email - DISABLED
-            # send_email = EmailMessage(mail_subject, message, to=[email])
-            # send_email.content_subtype = "html"
-            # send_email.send()
-            messages.success(request, 'Password reset email has been sent to your email.')  # Show dummy success message
-            return redirect('login')
-        else:
-            messages.error(request, 'Account does not exist.')
+        try:
+            if Account.objects.filter(email=email).exists():
+                user = Account.objects.get(email=email)
+                
+                # Send password reset email
+                email_sent = send_password_reset_email(request, user, email)
+                
+                if email_sent:
+                    messages.success(request, 'Password reset email has been sent to your email.')
+                else:
+                    messages.warning(request, 'Unable to send reset email. Please try again later.')
+                    
+                return redirect('login')
+            else:
+                messages.error(request, 'Account does not exist.')
+                return redirect('forgotpassword')
+                
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Forgot password error: {str(e)}")
+            messages.error(request, 'An error occurred. Please try again.')
             return redirect('forgotpassword')
+            
     return render(request, 'accounts/forgotpassword.html')
+
+
+def send_password_reset_email(request, user, email):
+    """Send password reset email using Brevo"""
+    try:
+        current_site = get_current_site(request)
+        mail_subject = 'Reset Your PacificMart Password'
+        message = render_to_string('accounts/reset_password_email.html', {
+            'user': user,
+            'domain': current_site.domain if current_site else request.get_host(),
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': default_token_generator.make_token(user)
+        })
+        
+        send_email = EmailMessage(
+            mail_subject, 
+            message, 
+            from_email=f"{settings.BREVO_SENDER_NAME} <{settings.DEFAULT_FROM_EMAIL}>",
+            to=[email]
+        )
+        send_email.content_subtype = "html"
+        send_email.send(fail_silently=False)
+        
+        logger = logging.getLogger(__name__)
+        logger.info(f"Password reset email sent successfully to {email}")
+        return True
+        
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Password reset email failed for {email}: {str(e)}")
+        return False
 
 def resetpassword_validate(request, uidb64, token):
     try:
@@ -294,15 +416,30 @@ def resetpassword(request):
         password = request.POST['password']
         confirm_password = request.POST['confirm_password']
         uid = request.session.get('uid')
-        user = Account.objects.get(pk=uid)
+        
+        try:
+            if not uid:
+                messages.error(request, 'Invalid password reset link. Please try again.')
+                return redirect('forgotpassword')
+                
+            user = Account.objects.get(pk=uid)
 
-        if password == confirm_password:
-            user.set_password(password)
-            user.save()
-            messages.success(request, 'Password reset successful.')
-            return redirect('login')
-        else:
-            messages.error(request, 'Passwords do not match.')
+            if password == confirm_password:
+                user.set_password(password)
+                user.save()
+                messages.success(request, 'Password reset successful. You can now login with your new password.')
+                return redirect('login')
+            else:
+                messages.error(request, 'Passwords do not match.')
+                return redirect('resetpassword')
+                
+        except Account.DoesNotExist:
+            messages.error(request, 'Invalid password reset link. Please try again.')
+            return redirect('forgotpassword')
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Reset password error: {str(e)}")
+            messages.error(request, 'An error occurred. Please try again.')
             return redirect('resetpassword')
 
     return render(request, 'accounts/resetpassword.html')

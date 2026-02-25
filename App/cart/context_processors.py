@@ -43,6 +43,9 @@ def counter(request):
         cart_count = 0
     except Exception as e:
         # Gracefully handle any other errors
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Cart counter error: {str(e)}")
         cart_count = 0
     
     return dict(cart_count=cart_count)
