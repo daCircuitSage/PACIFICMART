@@ -53,6 +53,9 @@ class Account(AbstractUser):
     is_active = models.BooleanField(default=False)  # Require email verification
     is_staff = models.BooleanField(default=False)
     is_superadmin = models.BooleanField(default=False)
+    
+    # Email verification tracking - separate from is_active for security
+    is_email_verified = models.BooleanField(default=False)
 
 
     objects = MyAccountManager()

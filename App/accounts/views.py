@@ -16,6 +16,9 @@ import requests
 import logging
 from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
+from .tokens import account_activation_token
+from .email_utils import send_verification_email_async
+from .rate_limit import can_resend_verification_email, mark_verification_email_sent
 
 
 
@@ -38,53 +41,18 @@ def register(request):
                 password=password
             )
             user.phone_number = phone_number
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Auto-activate user since email verification is disabled
-            user.is_active = True
+            # User starts inactive until email verification
+            user.is_active = False
+            user.is_email_verified = False
             user.save()
 
             profile = UserProfile(user=user)
             profile.save()
 
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Verification email - DISABLED
-            email_sent = True  # Always mark as sent to avoid breaking flow
-            try:
-                # current_site = get_current_site(request)
-                mail_subject = 'Please activate your account'
-                message = render_to_string('accounts/account_verification_email.html', {
-                    'user': user,
-                    # 'domain': current_site.domain,
-                    'domain': request.get_host(),  #current_site This gives 127.0.0.1:8000 or your domain
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-                    'token': default_token_generator.make_token(user)
-                })
-                
-                # Create email with proper error handling
-                # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-                # send_email = EmailMessage(
-                #     mail_subject, 
-                #     message, 
-                #     to=[email],
-                #     # from_email=None
-                #     from_email=settings.EMAIL_HOST_USER
-                # )
-                # send_email.content_subtype = "html"
-                # # send_email.send(fail_silently=True)  # Changed to fail_silently=True
-                # send_email.send(fail_silently=False)  # false throws error
-                # email_sent = True
-                
-            except Exception as e:
-                # Log error but don't fail registration
-                logger = logging.getLogger(__name__)
-                logger.error(f"Email sending failed for {email}: {str(e)}")
-                email_sent = True  # Still mark as sent to avoid breaking flow
-
-            # Always redirect, even if email fails
-            # return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
-            # EMAIL DISABLED TEMPORARILY (Render free plan issue)
-            # Always redirect to login since email verification is disabled and user is auto-activated
-            return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
+            # Send verification email asynchronously
+            email_sent = send_verification_email_async(user, request)
+            
+            return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=' + str(email_sent))
     else:
         form = RegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -93,22 +61,32 @@ def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        
+        # First check if user exists and email verification status
+        try:
+            user_obj = Account.objects.get(email=email)
+            
+            # Check email verification BEFORE authentication
+            if not user_obj.is_email_verified:
+                messages.error(request, 'Email not verified. Please check your inbox or resend verification email.')
+                return redirect('login')
+                
+        except Account.DoesNotExist:
+            # Don't reveal if user exists or not - use generic message
+            messages.error(request, 'Invalid login credentials')
+            return redirect('login')
+        
+        # Now authenticate user
         user = auth.authenticate(email=email, password=password)
 
         if user is not None:
-            # Check if user is active
+            # Check if user is active (should always be true if email is verified)
             if user.is_active:
                 session_key_before = _cart_id(request)
                 auth.login(request, user)
                 merge_carts(user, session_key_before)
 
-                # Vulnerability found: Direct redirect without checking if URL is safe
-                    # Malicious users could craft links like:
-                        # ?next=http://evil.com/steal-data
-                # url = request.GET.get('next') or 'dashboard'
-                # messages.success(request, 'You are now logged in.')
-                # return redirect(url)
-                # SECURE CODE: resolve Only allows redirects to current host Defaults to 'dashboard' for invalid URLs
+                # Secure redirect handling
                 next_url = request.GET.get('next')
                 if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
                     url = next_url
@@ -116,9 +94,11 @@ def login(request):
                     url = 'dashboard'
                 return redirect(url)
             else:
-                messages.error(request, 'Please verify your email address before logging in.')
+                # This should not happen if email verification is working properly
+                messages.error(request, 'Account is not active. Please contact support.')
                 return redirect('login')
         else:
+            # Invalid password
             messages.error(request, 'Invalid login credentials')
             return redirect('login')
     return render(request, 'accounts/login.html')
@@ -239,8 +219,15 @@ def activate(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, Account.DoesNotExist):
         user = None
 
-    if user is not None and default_token_generator.check_token(user, token):
+    if user is not None and account_activation_token.check_token(user, token):
+        # Check if already verified to prevent duplicate activation
+        if user.is_email_verified:
+            messages.info(request, 'Your account is already activated.')
+            return redirect('login')
+            
+        # Activate account
         user.is_active = True
+        user.is_email_verified = True
         user.save()
         messages.success(request, 'Congratulations! Your account is activated.')
         return redirect('login')
@@ -288,6 +275,54 @@ def resetpassword_validate(request, uidb64, token):
     else:
         messages.error(request, 'This link is dead!')
         return redirect('login')
+
+def resend_verification_email(request):
+    """
+    Resend verification email endpoint with rate limiting.
+    Accepts POST requests with email field.
+    Rate limited to 1 resend per 60 seconds per user.
+    """
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        
+        if not email:
+            messages.error(request, 'Email address is required.')
+            return redirect('login')
+        
+        try:
+            user = Account.objects.get(email=email)
+            
+            # Check if user is already verified
+            if user.is_email_verified:
+                messages.info(request, 'Your account is already verified. You can log in.')
+                return redirect('login')
+            
+            # Check rate limit
+            can_resend, wait_time = can_resend_verification_email(user)
+            
+            if not can_resend:
+                messages.error(request, f'Please wait {wait_time} seconds before requesting another verification email.')
+                return redirect('login')
+            
+            # Send verification email asynchronously
+            email_sent = send_verification_email_async(user, request)
+            
+            if email_sent:
+                # Mark rate limit
+                mark_verification_email_sent(user)
+                messages.success(request, 'Verification email has been sent to your email address.')
+            else:
+                messages.error(request, 'Failed to send verification email. Please try again later.')
+            
+            return redirect('login')
+            
+        except Account.DoesNotExist:
+            # Don't reveal if user exists or not for security
+            messages.success(request, 'If an account with this email exists, a verification email will be sent.')
+            return redirect('login')
+            
+    # For GET requests, redirect to login
+    return redirect('login')
 
 def resetpassword(request):
     if request.method == "POST":
