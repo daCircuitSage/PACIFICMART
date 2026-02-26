@@ -41,17 +41,24 @@ def register(request):
                     password=password
                 )
                 user.phone_number = phone_number
-                user.is_active = True  # Auto-activate user (email verification disabled)
-                user.is_email_verified = True  # Mark as verified
+                user.is_active = False  # Require email verification
+                user.is_email_verified = False  # Explicitly set verification status
                 user.save()
 
                 # Create user profile
                 profile = UserProfile(user=user)
                 profile.save()
 
-                # Skip email sending (disabled for now)
-                messages.success(request, 'Registration successful! You can now login.')
-                return redirect('login')
+                # Send verification email
+                email_sent = send_verification_email(request, user, email)
+                
+                if email_sent:
+                    messages.success(request, 'Registration successful! Please check your email to activate your account.')
+                    return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=True')
+                else:
+                    # Email failed but user is created - provide resend option
+                    messages.warning(request, 'Registration successful but verification email could not be sent. Please request a resend below.')
+                    return redirect('/accounts/login/?command=verification&email=' + email + '&email_sent=False')
                 
             except Exception as e:
                 logger = logging.getLogger(__name__)
