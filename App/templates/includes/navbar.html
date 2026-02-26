@@ -795,6 +795,24 @@
           <small>Hi, {{ user.first_name }}!</small>
           <div class="user-actions">
             <a href="{% url 'dashboard' %}">Dashboard</a>
+            {% if user.is_superuser or user.is_admin %}
+            <span class="separator">|</span>
+            <a href="{% url 'admin_vendor_list' %}" style="color: #0077be;">Vendor Admin</a>
+            {% else %}
+            <!-- Check if user is a vendor -->
+            {% if user.vendor %}
+              {% if user.vendor.status == 'APPROVED' %}
+              <span class="separator">|</span>
+              <a href="{% url 'vendor_dashboard' %}" style="color: #28a745;">Vendor Panel</a>
+              {% else %}
+              <span class="separator">|</span>
+              <a href="{% url 'vendor_dashboard' %}" style="color: #ffc107;">Vendor Pending</a>
+              {% endif %}
+            {% else %}
+              <span class="separator">|</span>
+              <a href="{% url 'vendor_register' %}" style="color: #0077be;">Become a Vendor</a>
+            {% endif %}
+            {% endif %}
             <span class="separator">|</span>
             <a href="{% url 'logout' %}" class="logout-link">Logout</a>
           </div>
@@ -831,6 +849,13 @@
       <a href="{% url 'store' %}" class="store-link">
         <i class="fas fa-store"></i> Browse Store
       </a>
+      
+      <!-- Vendor Registration for non-logged users -->
+      {% if user.id is None %}
+      <a href="{% url 'vendor_register' %}" class="store-link" style="background: linear-gradient(135deg, #0077be, #004e7c); color: white; border: none;">
+        <i class="fas fa-store"></i> Become a Vendor
+      </a>
+      {% endif %}
     </div>
   </div>
 
@@ -862,6 +887,28 @@
         <a href="{% url 'dashboard' %}">
           <i class="fas fa-tachometer-alt"></i> Dashboard
         </a>
+        {% if user.is_superuser or user.is_admin %}
+        <a href="{% url 'admin_vendor_list' %}" style="color: #0077be;">
+          <i class="fas fa-store"></i> Vendor Admin
+        </a>
+        {% else %}
+        <!-- Check if user is a vendor -->
+        {% if user.vendor %}
+          {% if user.vendor.status == 'APPROVED' %}
+          <a href="{% url 'vendor_dashboard' %}" style="color: #28a745;">
+            <i class="fas fa-store"></i> Vendor Panel
+          </a>
+          {% else %}
+          <a href="{% url 'vendor_dashboard' %}" style="color: #ffc107;">
+            <i class="fas fa-clock"></i> Vendor Pending
+          </a>
+          {% endif %}
+        {% else %}
+        <a href="{% url 'vendor_register' %}" style="color: #0077be;">
+          <i class="fas fa-store"></i> Become a Vendor
+        </a>
+        {% endif %}
+        {% endif %}
         <a href="{% url 'my_orders' %}">
           <i class="fas fa-receipt"></i> My Orders
         </a>
