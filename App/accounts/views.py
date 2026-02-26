@@ -80,9 +80,12 @@ def send_verification_email(request, user, email):
             logger.error("DEFAULT_FROM_EMAIL not configured")
             return False
             
-        # Get current site with fallback
-        current_site = get_current_site(request)
-        domain = current_site.domain if current_site else request.get_host()
+        # Get domain - prioritize request host for production
+        if request:
+            domain = request.get_host()
+        else:
+            current_site = get_current_site(request)
+            domain = current_site.domain if current_site else 'thepacificmart.onrender.com'
         
         # Generate verification link
         uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -369,11 +372,17 @@ def forgotpassword(request):
 def send_password_reset_email(request, user, email):
     """Send password reset email using Brevo"""
     try:
-        current_site = get_current_site(request)
+        # Get domain - prioritize request host for production
+        if request:
+            domain = request.get_host()
+        else:
+            current_site = get_current_site(request)
+            domain = current_site.domain if current_site else 'thepacificmart.onrender.com'
+        
         mail_subject = 'Reset Your PacificMart Password'
         message = render_to_string('accounts/reset_password_email.html', {
             'user': user,
-            'domain': current_site.domain if current_site else request.get_host(),
+            'domain': domain,
             'uid': urlsafe_base64_encode(force_bytes(user.pk)),
             'token': default_token_generator.make_token(user)
         })
