@@ -369,7 +369,7 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 
 
 
-EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend' # to mail
+EMAIL_BACKEND = 'utils.email.BrevoEmailBackend'
 
 # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # to console
 
