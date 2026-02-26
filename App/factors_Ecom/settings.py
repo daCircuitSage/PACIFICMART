@@ -124,8 +124,6 @@ MIDDLEWARE = [
 
     'whitenoise.middleware.WhiteNoiseMiddleware',
 
-    'middleware.DatabaseHealthCheckMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
 
     'django.middleware.common.CommonMiddleware',
@@ -268,8 +266,6 @@ STATICFILES_DIRS = [BASE_DIR / 'factors_Ecom' / 'static']
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Static file caching settings
-
 WHITENOISE_USE_FINDERS = True
 
 WHITENOISE_MAX_AGE = 31536000  # 1 year for production
@@ -369,23 +365,46 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 
 # ================= EMAIL =================
 
-# Use Brevo API for email services (more reliable than SMTP)
-EMAIL_BACKEND = 'utils.email.BrevoEmailBackend'
+# EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
-# Brevo SMTP Configuration
-EMAIL_HOST = config('EMAIL_HOST', default='smtp-relay.brevo.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')  # Brevo login email
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')  # Brevo password or API key
+
+
+EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend' # to mail
+
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # to console
+
+
+
+# Use Gmail SMTP in both development and production
+
+if not DEBUG:
+
+    # Production settings - use Gmail SMTP
+
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+else:
+
+    # Development settings - same Gmail SMTP
+
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
-# Brevo Sender Information
-DEFAULT_FROM_EMAIL = config('BREVO_SENDER_EMAIL', default='thepacificmart.user@gmail.com')
-BREVO_SENDER_NAME = config('BREVO_SENDER_NAME', default='PacificMart')
-
-# Email timeout and error handling
-EMAIL_TIMEOUT = 30
+# Email timeout settings for production
+EMAIL_TIMEOUT = 30  # 30 seconds timeout
 EMAIL_FAIL_SILENTLY = False  # Show errors for debugging
 
 # Email fallback for development
