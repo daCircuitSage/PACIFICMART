@@ -369,8 +369,8 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 
 # ================= EMAIL =================
 
-# Use Brevo (Sendinblue) for email services
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# Use Brevo API for email services (more reliable than SMTP)
+EMAIL_BACKEND = 'utils.email.BrevoEmailBackend'
 
 # Brevo SMTP Configuration
 EMAIL_HOST = config('EMAIL_HOST', default='smtp-relay.brevo.com')
