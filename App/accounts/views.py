@@ -1,8 +1,8 @@
 from django.db.models import F
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from .forms import RegistrationForm, UserForm, UserProfileForm
-from .models import Account, UserProfile
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import RegistrationForm, UserForm, UserProfileForm, VendorRegistrationForm, VendorApprovalForm
+from .models import Account, UserProfile, Vendor
 from orders.models import Order, OrderProduct
 from django.contrib import messages, auth
 from cart.views import _cart_id, merge_carts
@@ -17,6 +17,7 @@ import logging
 import smtplib
 from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.core.exceptions import PermissionDenied
 
 
 
@@ -452,3 +453,166 @@ def resetpassword(request):
             return redirect('resetpassword')
 
     return render(request, 'accounts/resetpassword.html')
+
+
+# ================= VENDOR SYSTEM VIEWS =================
+
+def is_vendor(user):
+    """Check if user is a vendor"""
+    return hasattr(user, 'vendor') and user.vendor is not None
+
+def is_admin(user):
+    """Check if user is admin"""
+    return user.is_superuser or user.is_admin
+
+@login_required(login_url='login')
+def vendor_register(request):
+    """Vendor registration view"""
+    # Check if user is already a vendor
+    if hasattr(request.user, 'vendor'):
+        messages.warning(request, 'You are already registered as a vendor.')
+        return redirect('vendor_dashboard')
+    
+    if request.method == 'POST':
+        form = VendorRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                vendor = form.save(commit=False)
+                vendor.user = request.user
+                vendor.status = 'PENDING'  # Requires admin approval
+                vendor.save()
+                
+                messages.success(request, 'Your vendor application has been submitted successfully! It is now pending admin approval.')
+                return redirect('vendor_dashboard')
+                
+            except Exception as e:
+                logger = logging.getLogger(__name__)
+                logger.error(f"Vendor registration error: {str(e)}")
+                messages.error(request, 'An error occurred during vendor registration. Please try again.')
+        else:
+            # Add error messages
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()}: {error}")
+    else:
+        form = VendorRegistrationForm()
+    
+    return render(request, 'accounts/vendor_register.html', {'form': form})
+
+@login_required(login_url='login')
+@user_passes_test(is_vendor, login_url='vendor_register')
+def vendor_dashboard(request):
+    """Vendor dashboard view"""
+    vendor = request.user.vendor
+    
+    if not vendor.can_post_products():
+        messages.warning(request, 'Your vendor account is not active. Please wait for admin approval.')
+        return render(request, 'accounts/vendor_dashboard.html', {
+            'vendor': vendor,
+            'can_post_products': False
+        })
+    
+    # Get vendor's products
+    from product.models import Product
+    vendor_products = Product.objects.filter(vendor=vendor).order_by('-created_at')
+    
+    # Product statistics
+    total_products = vendor_products.count()
+    pending_products = vendor_products.filter(status='PENDING').count()
+    approved_products = vendor_products.filter(status='APPROVED').count()
+    rejected_products = vendor_products.filter(status='REJECTED').count()
+    
+    context = {
+        'vendor': vendor,
+        'vendor_products': vendor_products,
+        'total_products': total_products,
+        'pending_products': pending_products,
+        'approved_products': approved_products,
+        'rejected_products': rejected_products,
+        'can_post_products': vendor.can_post_products()
+    }
+    
+    return render(request, 'accounts/vendor_dashboard.html', context)
+
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
+def admin_vendor_list(request):
+    """Admin view to list all vendor applications"""
+    vendors = Vendor.objects.all().order_by('-created_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        vendors = vendors.filter(status=status_filter)
+    
+    context = {
+        'vendors': vendors,
+        'status_filter': status_filter
+    }
+    
+    return render(request, 'accounts/admin_vendor_list.html', context)
+
+@login_required(login_url='login')
+@user_passes_test(is_admin, login_url='login')
+def admin_vendor_detail(request, vendor_id):
+    """Admin view to review vendor application"""
+    vendor = get_object_or_404(Vendor, id=vendor_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        form = VendorApprovalForm(request.POST, instance=vendor)
+        
+        if form.is_valid() and action in ['approve', 'reject']:
+            admin_notes = form.cleaned_data.get('admin_notes', '')
+            
+            if action == 'approve':
+                vendor.approve(admin_notes)
+                messages.success(request, f'Vendor {vendor.business_name} has been approved.')
+                
+                # Send approval email
+                send_vendor_status_email(vendor, 'approved')
+                
+            elif action == 'reject':
+                vendor.reject(admin_notes)
+                messages.success(request, f'Vendor {vendor.business_name} has been rejected.')
+                
+                # Send rejection email
+                send_vendor_status_email(vendor, 'rejected')
+            
+            return redirect('admin_vendor_list')
+    else:
+        form = VendorApprovalForm(instance=vendor)
+    
+    return render(request, 'accounts/admin_vendor_detail.html', {
+        'vendor': vendor,
+        'form': form
+    })
+
+def send_vendor_status_email(vendor, status):
+    """Send email to vendor about their application status"""
+    try:
+        subject = f'Your Vendor Application Status - {status.title()}'
+        
+        template = 'accounts/vendor_approval_email.html' if status == 'approved' else 'accounts/vendor_rejection_email.html'
+        
+        message = render_to_string(template, {
+            'vendor': vendor,
+            'status': status,
+            'domain': 'thepacificmart.onrender.com'  # Update with actual domain
+        })
+        
+        send_email = EmailMessage(
+            subject=subject,
+            body=message,
+            from_email=f"{settings.BREVO_SENDER_NAME} <{settings.DEFAULT_FROM_EMAIL}>",
+            to=[vendor.get_email()]
+        )
+        send_email.content_subtype = "html"
+        send_email.send(fail_silently=False)
+        
+        logger = logging.getLogger(__name__)
+        logger.info(f"Vendor {status} email sent to {vendor.get_email()}")
+        
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send vendor {status} email: {str(e)}")

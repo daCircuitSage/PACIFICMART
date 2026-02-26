@@ -8,6 +8,14 @@ from cloudinary.models import CloudinaryField
 
 
 class Product(models.Model):
+    """Enhanced Product model with vendor support and approval system"""
+    
+    PRODUCT_STATUS_CHOICES = (
+        ('PENDING', 'Pending Approval'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+    
     product_name = models.CharField(max_length=200, unique=True)
     product_slug = models.SlugField(max_length=200, unique=True)
     product_description = models.TextField()
@@ -16,15 +24,34 @@ class Product(models.Model):
     stock = models.IntegerField()
     is_available = models.BooleanField(default=True)
     product_category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    
+    # Vendor and Approval System
+    vendor = models.ForeignKey(
+        'accounts.Vendor', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='products',
+        help_text="Leave blank for admin-added products"
+    )
+    status = models.CharField(
+        max_length=10, 
+        choices=PRODUCT_STATUS_CHOICES, 
+        default='APPROVED',  # Existing products default to approved
+        help_text="Product approval status"
+    )
+    approval_date = models.DateTimeField(blank=True, null=True)
+    rejection_reason = models.TextField(blank=True, help_text="Reason for rejection if applicable")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_url(self):
         return reverse('product_detail', args=[self.product_category.slug, self.product_slug])
 
-
     def __str__(self):
-        return self.product_name
+        vendor_info = f" by {self.vendor.business_name}" if self.vendor else ""
+        return f"{self.product_name}{vendor_info}"
     
     def averageReview(self):
         reviews = ReviewRating.objects.filter(product=self,status=True).aggregate(average=Avg('rating'))
@@ -39,6 +66,30 @@ class Product(models.Model):
         if reviews['count'] is not None:
             count = int(reviews['count'])
         return count
+    
+    def approve(self):
+        """Approve product"""
+        from django.utils import timezone
+        self.status = 'APPROVED'
+        self.approval_date = timezone.now()
+        self.rejection_reason = ""
+        self.save()
+    
+    def reject(self, reason=""):
+        """Reject product with reason"""
+        from django.utils import timezone
+        self.status = 'REJECTED'
+        self.rejection_reason = reason
+        self.save()
+    
+    def is_visible(self):
+        """Check if product should be visible to customers"""
+        return self.is_available and self.status == 'APPROVED'
+    
+    @classmethod
+    def get_visible_products(cls):
+        """Get all products that should be visible to customers"""
+        return cls.objects.filter(is_available=True, status='APPROVED')
 
 class VariationManager(models.Manager):
     def colors(self):

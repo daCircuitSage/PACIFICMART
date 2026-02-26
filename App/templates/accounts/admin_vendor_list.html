@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vendor Management - PacificMart Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-store"></i> Vendor Management</h2>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Filter by Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                        <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
+                        <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Vendors List -->
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0">Vendor Applications ({{ vendors.count }})</h5>
+        </div>
+        <div class="card-body">
+            {% if vendors %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Business</th>
+                            <th>Owner</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Applied</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vendor in vendors %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <strong>{{ vendor.business_name }}</strong><br>
+                                        <small class="text-muted">{{ vendor.business_email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {{ vendor.user.full_name }}<br>
+                                <small class="text-muted">{{ vendor.user.email }}</small>
+                            </td>
+                            <td>{{ vendor.get_business_category_display }}</td>
+                            <td>
+                                {% if vendor.status == 'APPROVED' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif vendor.status == 'PENDING' %}
+                                    <span class="badge bg-warning">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ vendor.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'admin_vendor_detail' vendor.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-store fa-3x text-muted mb-3"></i>
+                <h5>No Vendor Applications Found</h5>
+                <p class="text-muted">No vendor applications match your current filter criteria.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

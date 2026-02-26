@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vendor Dashboard - PacificMart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-store"></i> Vendor Panel</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'vendor_dashboard' %}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    {% if can_post_products %}
+                    <a href="{% url 'vendor_product_create' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-plus"></i> Add Product
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                    <a href="{% url 'my_orders' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shopping-bag"></i> Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Vendor Status Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-store"></i> {{ vendor.business_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong> 
+                                {% if vendor.status == 'APPROVED' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% elif vendor.status == 'PENDING' %}
+                                    <span class="badge bg-warning">Pending Approval</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Category:</strong> {{ vendor.get_business_category_display }}</p>
+                            <p><strong>Email:</strong> {{ vendor.business_email }}</p>
+                            <p><strong>Phone:</strong> {{ vendor.business_phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if vendor.store_location %}
+                                <p><strong>Store Location:</strong> {{ vendor.store_location }}</p>
+                            {% endif %}
+                            {% if vendor.store_city %}
+                                <p><strong>City:</strong> {{ vendor.store_city }}</p>
+                            {% endif %}
+                            <p><strong>Member Since:</strong> {{ vendor.created_at|date:"M d, Y" }}</p>
+                            {% if vendor.approved_at %}
+                                <p><strong>Approved On:</strong> {{ vendor.approved_at|date:"M d, Y" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if vendor.status == 'PENDING' %}
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-clock"></i>
+                        <strong>Your application is pending review.</strong> We'll notify you once our admin team approves your vendor account.
+                    </div>
+                    {% elif vendor.status == 'REJECTED' %}
+                    <div class="alert alert-danger mt-3">
+                        <i class="fas fa-times-circle"></i>
+                        <strong>Your application was rejected.</strong>
+                        {% if vendor.admin_notes %}
+                        <br>Reason: {{ vendor.admin_notes }}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if can_post_products %}
+            <!-- Product Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ total_products }}</h5>
+                            <p class="card-text">Total Products</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ pending_products }}</h5>
+                            <p class="card-text">Pending</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ approved_products }}</h5>
+                            <p class="card-text">Approved</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ rejected_products }}</h5>
+                            <p class="card-text">Rejected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products List -->
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-box"></i> Your Products</h5>
+                    {% if can_post_products %}
+                    <a href="{% url 'vendor_product_create' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus"></i> Add Product
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if vendor_products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in vendor_products %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if product.product_img %}
+                                                <img src="{{ product.product_img.url }}" alt="{{ product.product_name }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ product.product_name }}</strong><br>
+                                                <small class="text-muted">{{ product.product_category.category_name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>${{ product.product_price }}</td>
+                                    <td>{{ product.stock }}</td>
+                                    <td>
+                                        {% if product.status == 'APPROVED' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% elif product.status == 'PENDING' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                            {% if product.rejection_reason %}
+                                                <br><small class="text-muted">{{ product.rejection_reason|truncatechars:50 }}</small>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if product.status == 'PENDING' %}
+                                            <a href="{% url 'vendor_product_edit' product.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-box fa-3x text-muted mb-3"></i>
+                        <h5>No Products Yet</h5>
+                        <p class="text-muted">Start by adding your first product to the marketplace.</p>
+                        <a href="{% url 'vendor_product_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Your First Product
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <!-- Not Approved Message -->
+            <div class="card shadow">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-lock fa-4x text-muted mb-3"></i>
+                    <h4>Account Not Active</h4>
+                    <p class="text-muted">Your vendor account is not yet approved. Please wait for admin approval to start adding products.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

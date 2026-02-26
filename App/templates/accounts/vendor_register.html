@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vendor Registration - PacificMart{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Become a Vendor</h3>
+                    <p class="mb-0 mt-2">Join our marketplace and start selling your products</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> Your vendor application will require admin approval. 
+                        You'll need to upload your NID card for verification.
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Business Information -->
+                        <h5 class="mb-3 mt-4"><i class="fas fa-briefcase"></i> Business Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.business_name.id_for_label }}" class="form-label">Business Name *</label>
+                                {{ form.business_name }}
+                                {% if form.business_name.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.business_name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.business_category.id_for_label }}" class="form-label">Business Category *</label>
+                                {{ form.business_category }}
+                                {% if form.business_category.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.business_category.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.business_description.id_for_label }}" class="form-label">Business Description</label>
+                            {{ form.business_description }}
+                            {% if form.business_description.errors %}
+                                <div class="text-danger small">
+                                    {{ form.business_description.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Contact Information -->
+                        <h5 class="mb-3 mt-4"><i class="fas fa-phone"></i> Contact Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.business_phone.id_for_label }}" class="form-label">Business Phone *</label>
+                                {{ form.business_phone }}
+                                {% if form.business_phone.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.business_phone.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.business_email.id_for_label }}" class="form-label">Business Email *</label>
+                                {{ form.business_email }}
+                                {% if form.business_email.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.business_email.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Location Information -->
+                        <h5 class="mb-3 mt-4"><i class="fas fa-map-marker-alt"></i> Store Location (Optional)</h5>
+                        <div class="mb-3">
+                            <label for="{{ form.store_location.id_for_label }}" class="form-label">Physical Store Address</label>
+                            {{ form.store_location }}
+                            {% if form.store_location.errors %}
+                                <div class="text-danger small">
+                                    {{ form.store_location.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.store_city.id_for_label }}" class="form-label">City</label>
+                                {{ form.store_city }}
+                                {% if form.store_city.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.store_city.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.store_state.id_for_label }}" class="form-label">State/Division</label>
+                                {{ form.store_state }}
+                                {% if form.store_state.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.store_state.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- NID Card Verification -->
+                        <h5 class="mb-3 mt-4"><i class="fas fa-id-card"></i> NID Card Verification *</h5>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Please upload clear images of both sides of your NID card for identity verification.
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nid_card_front.id_for_label }}" class="form-label">NID Card Front *</label>
+                                {{ form.nid_card_front }}
+                                {% if form.nid_card_front.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.nid_card_front.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nid_card_back.id_for_label }}" class="form-label">NID Card Back *</label>
+                                {{ form.nid_card_back }}
+                                {% if form.nid_card_back.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.nid_card_back.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane"></i> Submit Vendor Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

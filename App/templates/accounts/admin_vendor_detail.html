@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vendor Review - PacificMart Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-store"></i> Vendor Application Review</h2>
+        <a href="{% url 'admin_vendor_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <!-- Vendor Information -->
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Business Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Business Name:</strong> {{ vendor.business_name }}</p>
+                    <p><strong>Category:</strong> {{ vendor.get_business_category_display }}</p>
+                    <p><strong>Business Email:</strong> {{ vendor.business_email }}</p>
+                    <p><strong>Business Phone:</strong> {{ vendor.business_phone }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Owner:</strong> {{ vendor.user.full_name }}</p>
+                    <p><strong>Owner Email:</strong> {{ vendor.user.email }}</p>
+                    <p><strong>Applied Date:</strong> {{ vendor.created_at|date:"M d, Y H:i" }}</p>
+                    <p><strong>Status:</strong> 
+                        {% if vendor.status == 'APPROVED' %}
+                            <span class="badge bg-success">Approved</span>
+                        {% elif vendor.status == 'PENDING' %}
+                            <span class="badge bg-warning">Pending</span>
+                        {% else %}
+                            <span class="badge bg-danger">Rejected</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            {% if vendor.business_description %}
+            <div class="mt-3">
+                <p><strong>Business Description:</strong></p>
+                <p class="text-muted">{{ vendor.business_description }}</p>
+            </div>
+            {% endif %}
+            
+            {% if vendor.store_location %}
+            <div class="mt-3">
+                <p><strong>Store Location:</strong></p>
+                <p class="text-muted">{{ vendor.store_location }}</p>
+                {% if vendor.store_city or vendor.store_state %}
+                    <small class="text-muted">{{ vendor.store_city }}, {{ vendor.store_state }}</small>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- NID Card Verification -->
+    <div class="card shadow mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">NID Card Verification</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>NID Card Front:</strong></p>
+                    {% if vendor.nid_card_front %}
+                        <img src="{{ vendor.nid_card_front.url }}" alt="NID Front" class="img-fluid rounded" style="max-height: 300px;">
+                    {% else %}
+                        <p class="text-muted">No image uploaded</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <p><strong>NID Card Back:</strong></p>
+                    {% if vendor.nid_card_back %}
+                        <img src="{{ vendor.nid_card_back.url }}" alt="NID Back" class="img-fluid rounded" style="max-height: 300px;">
+                    {% else %}
+                        <p class="text-muted">No image uploaded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval Actions -->
+    {% if vendor.status == 'PENDING' %}
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0">Approval Actions</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="{{ form.admin_notes.id_for_label }}" class="form-label">Admin Notes</label>
+                    {{ form.admin_notes }}
+                    <small class="form-text text-muted">Add any notes about this decision (optional)</small>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" name="action" value="approve" class="btn btn-success">
+                        <i class="fas fa-check"></i> Approve Vendor
+                    </button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Reject Vendor
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Admin Notes (for approved/rejected) -->
+    {% if vendor.admin_notes %}
+    <div class="card shadow mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Admin Notes</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">{{ vendor.admin_notes }}</p>
+            {% if vendor.approved_at %}
+                <small class="text-success">Approved on: {{ vendor.approved_at|date:"M d, Y H:i" }}</small>
+            {% elif vendor.rejected_at %}
+                <small class="text-danger">Rejected on: {{ vendor.rejected_at|date:"M d, Y H:i" }}</small>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
