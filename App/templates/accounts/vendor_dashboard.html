@@ -20,6 +20,9 @@
                     <a href="{% url 'vendor_product_create' %}" class="list-group-item list-group-item-action">
                         <i class="fas fa-plus"></i> Add Product
                     </a>
+                    <a href="{% url 'vendor_orders' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-shopping-bag"></i> Orders
+                    </a>
                     {% endif %}
                     <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action">
                         <i class="fas fa-user"></i> My Profile
@@ -86,7 +89,7 @@
             </div>
 
             {% if can_post_products %}
-            <!-- Product Statistics -->
+            <!-- Sales Statistics -->
             <div class="row mb-4">
                 <div class="col-md-3">
                     <div class="card bg-primary text-white">
@@ -97,28 +100,164 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card bg-warning text-white">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ pending_products }}</h5>
-                            <p class="card-text">Pending</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
                     <div class="card bg-success text-white">
                         <div class="card-body">
-                            <h5 class="card-title">{{ approved_products }}</h5>
-                            <p class="card-text">Approved</p>
+                            <h5 class="card-title">${{ total_revenue|floatformat:2 }}</h5>
+                            <p class="card-text">Total Revenue</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card bg-danger text-white">
+                    <div class="card bg-info text-white">
                         <div class="card-body">
-                            <h5 class="card-title">{{ rejected_products }}</h5>
-                            <p class="card-text">Rejected</p>
+                            <h5 class="card-title">{{ total_orders }}</h5>
+                            <p class="card-text">Total Orders</p>
                         </div>
                     </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">${{ total_revenue|div:total_orders|floatformat:2|default:"0.00" }}</h5>
+                            <p class="card-text">Avg Order Value</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Status Breakdown -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Order Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <h4 class="text-warning">{{ orders_by_status.Verifying_Payment|default:0 }}</h4>
+                                        <small>Verifying Payment</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <h4 class="text-info">{{ orders_by_status.Shipping|default:0 }}</h4>
+                                        <small>Shipping</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <h4 class="text-success">{{ orders_by_status.Shipped|default:0 }}</h4>
+                                        <small>Shipped</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="mb-3">
+                                        <h4 class="text-danger">{{ orders_by_status.Cancelled|default:0 }}</h4>
+                                        <small>Cancelled</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Monthly Sales Chart -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="fas fa-chart-line"></i> Monthly Sales (6 months)</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if monthly_sales %}
+                            <canvas id="monthlySalesChart" width="400" height="200"></canvas>
+                            {% else %}
+                            <p class="text-muted text-center">No sales data available</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card shadow mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Recent Orders</h5>
+                    <a href="{% url 'vendor_orders' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-list"></i> View All Orders
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order_product in recent_orders %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">#{{ order_product.order.order_number }}</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ order_product.user.first_name }} {{ order_product.user.last_name }}</strong><br>
+                                            <small class="text-muted">{{ order_product.user.email }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if order_product.product.product_img %}
+                                                <img src="{{ order_product.product.product_img.url }}" alt="{{ order_product.product.product_name }}" class="rounded me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ order_product.product.product_name }}</strong><br>
+                                                <small class="text-muted">{{ order_product.product.product_category.category_name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ order_product.quantity }}</td>
+                                    <td><strong>${{ order_product.product_price|floatformat:2 }}</strong></td>
+                                    <td>
+                                        {% if order_product.order.status == 'Verifying Payment' %}
+                                            <span class="badge bg-warning">Verifying Payment</span>
+                                        {% elif order_product.order.status == 'Shipping' %}
+                                            <span class="badge bg-info">Shipping</span>
+                                        {% elif order_product.order.status == 'Shipped' %}
+                                            <span class="badge bg-success">Shipped</span>
+                                        {% elif order_product.order.status == 'Cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order_product.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'vendor_order_detail' order_product.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                        <h5>No Orders Yet</h5>
+                        <p class="text-muted">Your products haven't been ordered yet. Start promoting your products!</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -210,4 +349,51 @@
         </div>
     </div>
 </div>
+
+<!-- Chart.js for Monthly Sales -->
+{% if monthly_sales %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+        const monthlySales = {{ monthly_sales|safe }};
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthlySales.map(item => item.month),
+                datasets: [{
+                    label: 'Monthly Revenue ($)',
+                    data: monthlySales.map(item => item.revenue),
+                    borderColor: '#0077be',
+                    backgroundColor: 'rgba(0, 119, 190, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+    });
+</script>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Orders - PacificMart Vendor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-store"></i> Vendor Panel</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'vendor_dashboard' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a href="{% url 'vendor_orders' %}" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-shopping-bag"></i> Orders
+                    </a>
+                    <a href="{% url 'vendor_product_create' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-plus"></i> Add Product
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user"></i> My Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Filter Section -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> Filter Orders</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">Order Status</label>
+                            <select name="status" id="status" class="form-select">
+                                <option value="">All Orders</option>
+                                <option value="Verifying Payment" {% if status_filter == 'Verifying Payment' %}selected{% endif %}>Verifying Payment</option>
+                                <option value="Shipping" {% if status_filter == 'Shipping' %}selected{% endif %}>Shipping</option>
+                                <option value="Shipped" {% if status_filter == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                <option value="Cancelled" {% if status_filter == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Apply Filter
+                            </button>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            {% if status_filter %}
+                            <a href="{% url 'vendor_orders' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Clear Filter
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag"></i> Your Orders</h5>
+                </div>
+                <div class="card-body">
+                    {% if vendor_order_products %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Order #</th>
+                                    <th>Customer</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order_product in vendor_order_products %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">#{{ order_product.order.order_number }}</span>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ order_product.user.first_name }} {{ order_product.user.last_name }}</strong><br>
+                                            <small class="text-muted">{{ order_product.user.email }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if order_product.product.product_img %}
+                                                <img src="{{ order_product.product.product_img.url }}" alt="{{ order_product.product.product_name }}" class="rounded me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ order_product.product.product_name }}</strong><br>
+                                                <small class="text-muted">{{ order_product.product.product_category.category_name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ order_product.quantity }}</td>
+                                    <td><strong>${{ order_product.product_price|floatformat:2 }}</strong></td>
+                                    <td>
+                                        {% if order_product.order.status == 'Verifying Payment' %}
+                                            <span class="badge bg-warning">Verifying Payment</span>
+                                        {% elif order_product.order.status == 'Shipping' %}
+                                            <span class="badge bg-info">Shipping</span>
+                                        {% elif order_product.order.status == 'Shipped' %}
+                                            <span class="badge bg-success">Shipped</span>
+                                        {% elif order_product.order.status == 'Cancelled' %}
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ order_product.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'vendor_order_detail' order_product.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if vendor_order_products.has_other_pages %}
+                    <nav aria-label="Orders pagination" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if vendor_order_products.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ vendor_order_products.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in vendor_order_products.paginator.page_range %}
+                            <li class="page-item {% if vendor_order_products.number == num %}active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                            
+                            {% if vendor_order_products.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ vendor_order_products.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-shopping-bag fa-4x text-muted mb-3"></i>
+                        <h5>No Orders Found</h5>
+                        <p class="text-muted">
+                            {% if status_filter %}
+                                No orders found with status "{{ status_filter }}".
+                            {% else %}
+                                You haven't received any orders yet.
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'vendor_product_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add New Product
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -502,7 +502,7 @@ def vendor_register(request):
 @login_required(login_url='login')
 @user_passes_test(is_vendor, login_url='vendor_register')
 def vendor_dashboard(request):
-    """Vendor dashboard view"""
+    """Vendor dashboard view with sales tracking"""
     vendor = request.user.vendor
     
     if not vendor.can_post_products():
@@ -522,6 +522,53 @@ def vendor_dashboard(request):
     approved_products = vendor_products.filter(status='APPROVED').count()
     rejected_products = vendor_products.filter(status='REJECTED').count()
     
+    # Order and sales data
+    from orders.models import OrderProduct, Order, Payment
+    
+    # Get all order products for this vendor's products
+    vendor_order_products = OrderProduct.objects.filter(
+        product__vendor=vendor,
+        ordered=True
+    ).select_related('order', 'product', 'payment', 'user').order_by('-created_at')
+    
+    # Calculate sales statistics
+    total_orders = vendor_order_products.count()
+    total_revenue = vendor_order_products.aggregate(
+        total=models.Sum('product_price')
+    )['total'] or 0
+    
+    # Recent orders (last 10)
+    recent_orders = vendor_order_products[:10]
+    
+    # Orders by status
+    orders_by_status = {}
+    for status in ['Verifying Payment', 'Shipping', 'Shipped', 'Cancelled']:
+        orders_by_status[status] = vendor_order_products.filter(
+            order__status=status
+        ).count()
+    
+    # Monthly sales for the last 6 months
+    from django.db.models import Sum
+    from django.utils import timezone
+    import datetime
+    
+    monthly_sales = []
+    for i in range(6):
+        month_start = timezone.now().replace(day=1) - datetime.timedelta(days=i*30)
+        month_end = month_start + datetime.timedelta(days=30)
+        
+        month_revenue = vendor_order_products.filter(
+            created_at__gte=month_start,
+            created_at__lt=month_end
+        ).aggregate(total=Sum('product_price'))['total'] or 0
+        
+        monthly_sales.append({
+            'month': month_start.strftime('%b %Y'),
+            'revenue': float(month_revenue)
+        })
+    
+    monthly_sales.reverse()  # Show oldest to newest
+    
     context = {
         'vendor': vendor,
         'vendor_products': vendor_products,
@@ -529,10 +576,71 @@ def vendor_dashboard(request):
         'pending_products': pending_products,
         'approved_products': approved_products,
         'rejected_products': rejected_products,
-        'can_post_products': vendor.can_post_products()
+        'can_post_products': vendor.can_post_products(),
+        
+        # Sales and order data
+        'total_orders': total_orders,
+        'total_revenue': total_revenue,
+        'recent_orders': recent_orders,
+        'orders_by_status': orders_by_status,
+        'monthly_sales': monthly_sales,
     }
     
     return render(request, 'accounts/vendor_dashboard.html', context)
+
+@login_required(login_url='login')
+@user_passes_test(is_vendor, login_url='vendor_register')
+def vendor_order_detail(request, order_product_id):
+    """Vendor view for order details"""
+    vendor = request.user.vendor
+    
+    # Get the order product for this vendor
+    order_product = get_object_or_404(
+        OrderProduct.objects.select_related('order', 'product', 'payment', 'user'),
+        id=order_product_id,
+        product__vendor=vendor
+    )
+    
+    context = {
+        'order_product': order_product,
+        'order': order_product.order,
+        'product': order_product.product,
+        'payment': order_product.payment,
+        'customer': order_product.user,
+    }
+    
+    return render(request, 'accounts/vendor_order_detail.html', context)
+
+@login_required(login_url='login')
+@user_passes_test(is_vendor, login_url='vendor_register')
+def vendor_orders(request):
+    """Vendor view for all orders"""
+    vendor = request.user.vendor
+    
+    # Get all order products for this vendor's products
+    vendor_order_products = OrderProduct.objects.filter(
+        product__vendor=vendor,
+        ordered=True
+    ).select_related('order', 'product', 'payment', 'user').order_by('-created_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        vendor_order_products = vendor_order_products.filter(order__status=status_filter)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(vendor_order_products, 20)
+    page = request.GET.get('page')
+    paged_orders = paginator.get_page(page)
+    
+    context = {
+        'vendor_order_products': paged_orders,
+        'status_filter': status_filter,
+        'vendor': vendor,
+    }
+    
+    return render(request, 'accounts/vendor_orders.html', context)
 
 @login_required(login_url='login')
 @user_passes_test(is_admin, login_url='login')

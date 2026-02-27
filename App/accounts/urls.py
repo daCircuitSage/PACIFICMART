@@ -21,6 +21,8 @@ urlpatterns = [
     # Vendor URLs
     path('vendor/register/', views.vendor_register, name='vendor_register'),
     path('vendor/dashboard/', views.vendor_dashboard, name='vendor_dashboard'),
+    path('vendor/orders/', views.vendor_orders, name='vendor_orders'),
+    path('vendor/orders/<int:order_product_id>/', views.vendor_order_detail, name='vendor_order_detail'),
     
     # Admin Vendor URLs
     path('admin/vendors/', views.admin_vendor_list, name='admin_vendor_list'),
