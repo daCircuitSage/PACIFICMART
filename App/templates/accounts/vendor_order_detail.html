@@ -69,6 +69,16 @@
                     </div>
                 </div>
             </div>
+            {% else %}
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-money-bill"></i> Payment Information</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">No payment information available.</p>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Customer Information -->
             <div class="card shadow mb-4">
