@@ -537,6 +537,9 @@ def vendor_dashboard(request):
         total=models.Sum('product_price')
     )['total'] or 0
     
+    # Calculate average order value
+    avg_order_value = float(total_revenue) / total_orders if total_orders > 0 else 0
+    
     # Recent orders (last 10)
     recent_orders = vendor_order_products[:10]
     
@@ -581,6 +584,7 @@ def vendor_dashboard(request):
         # Sales and order data
         'total_orders': total_orders,
         'total_revenue': total_revenue,
+        'avg_order_value': avg_order_value,
         'recent_orders': recent_orders,
         'orders_by_status': orders_by_status,
         'monthly_sales': monthly_sales,
