@@ -1,4 +1,4 @@
-from django.db.models import F
+from django.db.models import F, Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import RegistrationForm, UserForm, UserProfileForm, VendorRegistrationForm, VendorApprovalForm
@@ -534,7 +534,7 @@ def vendor_dashboard(request):
     # Calculate sales statistics
     total_orders = vendor_order_products.count()
     total_revenue = vendor_order_products.aggregate(
-        total=models.Sum('product_price')
+        total=Sum('product_price')
     )['total'] or 0
     
     # Calculate average order value
@@ -551,7 +551,6 @@ def vendor_dashboard(request):
         ).count()
     
     # Monthly sales for the last 6 months
-    from django.db.models import Sum
     from django.utils import timezone
     import datetime
     
